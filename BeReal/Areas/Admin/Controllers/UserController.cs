@@ -3,6 +3,9 @@ using BeReal.ViewModels;
 using AspNetCoreHero.ToastNotification.Abstractions;
 using Microsoft.AspNetCore.Identity;
 using BeReal.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
+using BeReal.Utilities;
 
 namespace BeReal.Areas.Admin.Controllers
 {
@@ -21,14 +24,36 @@ namespace BeReal.Areas.Admin.Controllers
             _signInManager = signInManager;
             _userManager = userManager;
         }
-        public IActionResult Index()
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var users = await _userManager.Users.ToListAsync();
+            var userViewModel = users.Select(x => new UserViewModel()
+            {
+                Id = x.Id,
+                Username = x.UserName,
+                FirstName = x.FirstName,
+                LastName = x.LastName,
+                Email = x.Email,
+            }).ToList();
+
+            foreach(var user in userViewModel)
+            {
+                var oneUser = await _userManager.FindByIdAsync(user.Id);
+                var role = await _userManager.GetRolesAsync(oneUser);
+                user.Role = role.FirstOrDefault();
+            }
+            return View(userViewModel);
         }
         [HttpGet("Login")]
         public IActionResult Login()
         {
-            return View(new LoginViewModel());
+            if (!HttpContext.User.Identity.IsAuthenticated)
+            {
+                return View(new LoginViewModel());
+            }
+            return RedirectToAction(nameof(Index), "Post", new { area = "Admin" });
         }
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginViewModel lvm)
@@ -51,7 +76,103 @@ namespace BeReal.Areas.Admin.Controllers
             }
             await _signInManager.PasswordSignInAsync(lvm.Username, lvm.Password, lvm.RememberMe, true);
             _notification.Success("Login Successful");
-            return RedirectToAction(nameof(Index), "User", new {area = "Admin"});
+            return RedirectToAction(nameof(Index), "Post", new {area = "Admin"});
+        }
+        [HttpPost]
+        public IActionResult Logout()
+        {
+            _signInManager.SignOutAsync();
+            _notification.Success("Logged Out");
+            return RedirectToAction("Index", "Home", new {area = ""});
+        } 
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public IActionResult Register()
+        {
+            return View(new RegisterViewModel());
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> Register(RegisterViewModel rvm)
+        {
+            if (!ModelState.IsValid) { return View(rvm); }
+            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email);
+            if (checkEmail != null)
+            {
+                _notification.Error("This email is already registered.");
+                return View(rvm);
+            }
+            var checkUsername = await _userManager.FindByNameAsync(rvm.Username);
+            if (checkUsername != null)
+            {
+                _notification.Error("This username is not available.");
+                return View(rvm);
+            }
+            var user = new ApplicationUser()
+            {
+                FirstName = rvm.FirstName,
+                LastName = rvm.LastName,
+                UserName = rvm.Username,
+                Email = rvm.Email,
+            };
+            var checkUser = await _userManager.CreateAsync(user, rvm.Password);
+            if (checkUser.Succeeded)
+            {
+                if (rvm.isAdmin)
+                {
+                    await _userManager.AddToRoleAsync(user, Roles.Admin);
+                }
+                else
+                {
+                    await _userManager.AddToRoleAsync(user, Roles.User);
+                }
+                _notification.Success("User registered successfully!");
+                return RedirectToAction("Index", "Post", new {area = "Admin"});
+            }
+            return View(rvm);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpGet]
+        public async Task<IActionResult> ResetPassword(string id)
+        {
+            var thisUser = await _userManager.FindByIdAsync(id);
+            if (thisUser == null)
+            {
+                _notification.Error("User does not exist");
+                return View();
+            }
+            var resetVm = new ResetPasswordViewModel()
+            {
+                Id = thisUser.Id,
+                Username = thisUser.UserName,
+            };
+            return View(resetVm);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm)
+        {
+            if (!ModelState.IsValid) { return View(rpvm); }
+            var thisUser = await _userManager.FindByIdAsync(rpvm.Id);
+            if (thisUser == null)
+            {
+                _notification.Error("User does not exist");
+                return View(rpvm);
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(thisUser);
+            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword);
+            if (reset.Succeeded)
+            {
+                _notification.Success("Password changed successfully");
+                return RedirectToAction(nameof(Index));
+            }
+            return View(rpvm);
+        }
+        [HttpGet("AccessDenied")]
+        [Authorize]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
     }
 }

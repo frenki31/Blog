@@ -35,7 +35,7 @@
 
     <!-- Custom scripts for all pages-->
     <script src="~/adminPanel/js/sb-admin-2.min.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
     @await Component.InvokeAsync("Notyf")
-    @RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
