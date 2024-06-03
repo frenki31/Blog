@@ -88,18 +88,7 @@ namespace BeReal.Areas.Admin.Controllers
             _notification.Success("Post Create Successfully");
             return RedirectToAction("Index");
         }
-        private string GetImagePath(IFormFile formFile)
-        {
-            string uniqueFileName = "";
-            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-            uniqueFileName = Guid.NewGuid().ToString()+"_"+ formFile.FileName;
-            var filePath = Path.Combine(folderPath, uniqueFileName);
-            using (FileStream fileStream = System.IO.File.Create(filePath))
-            {
-                formFile.CopyTo(fileStream);
-            }
-            return uniqueFileName;
-        }
+        
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
@@ -161,6 +150,19 @@ namespace BeReal.Areas.Admin.Controllers
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
             return View();
+        }
+
+        private string GetImagePath(IFormFile formFile)
+        {
+            string uniqueFileName = "";
+            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
+            uniqueFileName = Guid.NewGuid().ToString() + "_" + formFile.FileName;
+            var filePath = Path.Combine(folderPath, uniqueFileName);
+            using (FileStream fileStream = System.IO.File.Create(filePath))
+            {
+                formFile.CopyTo(fileStream);
+            }
+            return uniqueFileName;
         }
     }
 }

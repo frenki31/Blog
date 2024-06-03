@@ -1,16 +1,18 @@
-﻿@model BeReal.ViewModels.CreatePostViewModel
+﻿@model BeReal.ViewModels.PageViewModel
 @{
-    ViewData["Title"] = "Create Post";
+    ViewData["Title"] = "Contact Page";
 }
 
 <div class="container-fluid">
     <a class="btn btn-primary mb-1" asp-action="Index" asp-controller="Post">Back</a>
     <div class="card">
         <div class="card-header bg-primary">
-            <h4 class="card-title text-white">Create Post</h4>
+            <h4 class="card-title text-white">Edit Page</h4>
         </div>
         <div class="card-body">
-            <form asp-action="Create" asp-controller="Post" asp-area="Admin" method="post" enctype="multipart/form-data">
+            <form asp-action="Contact" asp-controller="Page" asp-area="Admin" method="post" enctype="multipart/form-data">
+                <input type="hidden" asp-for="Id" />
+                <input type="hidden" asp-for="ImageUrl" />
                 <div class="row mb-2">
                     <div class="col-8">
                         <div class="mb-2">
@@ -31,7 +33,14 @@
                     </div>
                     <div class="col-3">
                         <div class="mb-2">
-                            <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
+                            @if (Model.ImageUrl == null)
+                            {
+                                <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
+                            }
+                            else
+                            {
+                                <img src="~/images/Model.ImageUrl" class="img-fluid" id="thumbnail">
+                            }
                         </div>
                         <div class="mb-2">
                             <label>Image</label>
@@ -39,7 +48,7 @@
                         </div>
                     </div>
                 </div>
-                <button type="submit" class="btn btn-primary w-100">Create</button>
+                <button type="submit" class="btn btn-primary w-100">Save</button>
             </form>
         </div>
     </div>

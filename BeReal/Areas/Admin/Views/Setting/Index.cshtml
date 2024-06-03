@@ -1,34 +1,48 @@
-﻿@model BeReal.ViewModels.CreatePostViewModel
+﻿@model BeReal.ViewModels.SettingViewModel
 @{
-    ViewData["Title"] = "Edit Post";
+    ViewData["Title"] = "Settings";
 }
 
 <div class="container-fluid">
     <a class="btn btn-primary mb-1" asp-action="Index" asp-controller="Post">Back</a>
     <div class="card">
         <div class="card-header bg-primary">
-            <h4 class="card-title text-white">Edit Post</h4>
+            <h4 class="card-title text-white">Settings</h4>
         </div>
         <div class="card-body">
-            <form asp-action="Edit" asp-controller="Post" asp-area="Admin" method="post" enctype="multipart/form-data">
+            <form asp-action="Index" asp-controller="Setting" asp-area="Admin" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="ImageUrl" />
                 <div class="row mb-2">
                     <div class="col-8">
+                        <div class="mb-2">
+                            <label>Name</label>
+                            <input asp-for="Name" type="text" class="form-control" />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
                         <div class="mb-2">
                             <label>Title</label>
                             <input asp-for="Title" type="text" class="form-control" />
                             <span asp-validation-for="Title" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
-                            <label>Short Description</label>
-                            <input asp-for="ShortDescription" type="text" class="form-control" />
-                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
+                            <label>Description</label>
+                            <input asp-for="Description" type="text" class="form-control"/>
+                            <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
-                            <label>Description</label>
-                            <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
+                            <label>Facebook</label>
+                            <input asp-for="FacebookUrl" type="text" class="form-control" />
+                            <span asp-validation-for="FacebookUrl" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label>Github</label>
+                            <input asp-for="GithubUrl" type="text" class="form-control" />
+                            <span asp-validation-for="GithubUrl" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label>Twitter</label>
+                            <input asp-for="TwitterUrl" type="text" class="form-control" />
+                            <span asp-validation-for="TwitterUrl" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-3">
@@ -37,7 +51,9 @@
                                 if (Model.ImageUrl == null)
                                 {
                                     <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
-                                }else{
+                                }
+                                else
+                                {
                                     <img src="~/images/@Model.ImageUrl" class="img-fluid" id="thumbnail">
                                 }
                             }

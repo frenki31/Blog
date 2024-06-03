@@ -1,11 +1,10 @@
-﻿@model BeReal.ViewModels.PageViewModel
+﻿@model BeReal.ViewModels.BlogPostViewModel
 @{
-    ViewData["Title"] = "Contact";
-
+    ViewData["Title"] = "Post";
     string imageUrl = "";
     if (Model.ImageUrl == null)
     {
-        imageUrl = "/blog/assets/img/contact-bg.jpg";
+        imageUrl = "assets/img/post-bg.jpg";
     }
     else
     {
@@ -17,15 +16,21 @@
     <div class="container position-relative px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
             <div class="col-md-10 col-lg-8 col-xl-7">
-                <div class="site-heading">
+                <div class="post-heading">
                     <h1>@Model.Title</h1>
-                    <span class="subheading">@Model.ShortDescription</span>
+                    <h2 class="subheading">@Model.ShortDescription</h2>
+                    <span class="meta">
+                        Posted by
+                        <a href="#!">@Model.Author</a>
+                        on @Model.PublicationDate.ToShortDateString()
+                    </span>
                 </div>
             </div>
         </div>
     </div>
 </header>
-<main class="mb-4">
+<!-- Post Content-->
+<article class="mb-4">
     <div class="container px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
             <div class="col-md-10 col-lg-8 col-xl-7">
@@ -33,4 +38,4 @@
             </div>
         </div>
     </div>
-</main>
+</article>
