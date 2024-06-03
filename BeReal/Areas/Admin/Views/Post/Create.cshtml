@@ -10,7 +10,7 @@
             <h4 class="card-title text-white">Create Post</h4>
         </div>
         <div class="card-body">
-            <form asp-action="CreatePost" asp-controller="Post" asp-area="Admin" method="post">
+            <form asp-action="Create" asp-controller="Post" asp-area="Admin" method="post" enctype="multipart/form-data">
                 <div class="row mb-2">
                     <div class="col-8">
                         <div class="mb-2">
@@ -31,7 +31,7 @@
                     </div>
                     <div class="col-3">
                         <div class="mb-2">
-                            <img src="~/images/default_image.png" class="img-fluid"/>
+                            <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
                         </div>
                         <div class="mb-2">
                             <label>Image</label>
@@ -44,3 +44,12 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <script>
+        $('.custom-file').on('change', function () {
+            var fileName = $(this).val().split('\\').pop();
+            $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
+            document.getElementById("thumbnail").src = window.URL.createObjectURL(this.files[0])
+        });
+    </script>
+}

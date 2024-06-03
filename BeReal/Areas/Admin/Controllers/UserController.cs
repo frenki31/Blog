@@ -14,7 +14,7 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly INotyfService _notification;
+        public INotyfService _notification { get; }
 
         public UserController(SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, 
@@ -40,8 +40,8 @@ namespace BeReal.Areas.Admin.Controllers
 
             foreach(var user in userViewModel)
             {
-                var oneUser = await _userManager.FindByIdAsync(user.Id);
-                var role = await _userManager.GetRolesAsync(oneUser);
+                var oneUser = await _userManager.FindByIdAsync(user.Id!);
+                var role = await _userManager.GetRolesAsync(oneUser!);
                 user.Role = role.FirstOrDefault();
             }
             return View(userViewModel);
@@ -49,7 +49,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet("Login")]
         public IActionResult Login()
         {
-            if (!HttpContext.User.Identity.IsAuthenticated)
+            if (!HttpContext.User.Identity!.IsAuthenticated)
             {
                 return View(new LoginViewModel());
             }
@@ -68,13 +68,13 @@ namespace BeReal.Areas.Admin.Controllers
                 _notification.Error("Username does not exist!");
                 return View(lvm);
             }
-            var checkPassword = await _userManager.CheckPasswordAsync(username, lvm.Password);
+            var checkPassword = await _userManager.CheckPasswordAsync(username, lvm.Password!);
             if (!checkPassword)
             {
                 _notification.Error("Password does not match!");
                 return View(lvm);
             }
-            await _signInManager.PasswordSignInAsync(lvm.Username, lvm.Password, lvm.RememberMe, true);
+            await _signInManager.PasswordSignInAsync(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
             return RedirectToAction(nameof(Index), "Post", new {area = "Admin"});
         }
@@ -96,13 +96,13 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Register(RegisterViewModel rvm)
         {
             if (!ModelState.IsValid) { return View(rvm); }
-            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email);
+            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
             if (checkEmail != null)
             {
                 _notification.Error("This email is already registered.");
                 return View(rvm);
             }
-            var checkUsername = await _userManager.FindByNameAsync(rvm.Username);
+            var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
             if (checkUsername != null)
             {
                 _notification.Error("This username is not available.");
@@ -115,7 +115,7 @@ namespace BeReal.Areas.Admin.Controllers
                 UserName = rvm.Username,
                 Email = rvm.Email,
             };
-            var checkUser = await _userManager.CreateAsync(user, rvm.Password);
+            var checkUser = await _userManager.CreateAsync(user, rvm.Password!);
             if (checkUser.Succeeded)
             {
                 if (rvm.isAdmin)
@@ -153,14 +153,14 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm)
         {
             if (!ModelState.IsValid) { return View(rpvm); }
-            var thisUser = await _userManager.FindByIdAsync(rpvm.Id);
+            var thisUser = await _userManager.FindByIdAsync(rpvm.Id!);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
                 return View(rpvm);
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(thisUser);
-            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword);
+            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword!);
             if (reset.Succeeded)
             {
                 _notification.Success("Password changed successfully");

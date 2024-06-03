@@ -37,26 +37,6 @@ namespace BeReal.Utilities
                     var result = _userManager.CreateAsync(admin, "Admin@1234").GetAwaiter().GetResult();
                     _userManager.AddToRoleAsync(admin, Roles.Admin).GetAwaiter().GetResult();
                 }
-                var pages = new List<Page>()
-                {
-                    new Page()
-                    {
-                        Title = "About Us",
-                        Slug = "about"
-                    },
-                    new Page()
-                    {
-                        Title = "Privacy Policy",
-                        Slug = "privacy"
-                    },
-                    new Page()
-                    {
-                        Title = "Contact Us",
-                        Slug = "contact"
-                    },
-                };
-                _context.Pages.AddRange(pages);
-                _context.SaveChanges();
             }
             catch (Exception ex)
             {

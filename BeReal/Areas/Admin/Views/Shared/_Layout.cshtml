@@ -2,7 +2,7 @@
 @inject UserManager<ApplicationUser> userManager;
 @{
     var authUser = new ApplicationUser();
-    authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity.Name);
+    authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
 }
 
 <!DOCTYPE html>
