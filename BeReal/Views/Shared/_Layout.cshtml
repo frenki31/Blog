@@ -18,8 +18,8 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-        <meta name="description" content="" />
-        <meta name="author" content="" />
+        <meta name="description" content="@ViewData["Description"]" />
+        <meta name="keywords" content="@ViewData["Keywords"]" />
         <title>@ViewData["Title"] - @vm.Name</title>
         <link rel="icon" type="image/x-icon" href="~/blog/assets/favicon.ico" />
         <!-- Font Awesome icons (free version)-->
@@ -41,12 +41,18 @@
                 </button>
                 <div class="collapse navbar-collapse" id="navbarResponsive">
                     <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Index">Home</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="About">About</a></li>
-                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" href="post.html">Sample Post</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Contact">Contact</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
-                    <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="User" asp-action="Login" asp-area="Admin">Login</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="About">About</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Contact">Contact</a></li>
+                        <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Home" asp-action="Privacy">Privacy</a></li>
+                        @if (User.Identity!.IsAuthenticated)
+                        {
+                            <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Post" asp-action="Index" asp-area="Admin">@User.Identity.Name</a></li>
+                        }
+                        else
+                        {
+                            <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="User" asp-action="Login" asp-area="Admin">Login</a></li>
+                        }
                     </ul>
                 </div>
             </div>

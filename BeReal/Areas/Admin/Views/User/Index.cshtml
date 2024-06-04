@@ -20,7 +20,7 @@
                         <th>Username</th>
                         <th>Email</th>
                         <th>Role</th>
-                        <th>Action</th>
+                        <th>Change</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -32,8 +32,11 @@
                             <td>@user.Username</td>
                             <td>@user.Email</td>
                             <td>@user.Role</td>
-                            <td>
-                                <a class="btn btn-secondary" asp-action="ResetPassword" asp-controller="User" asp-route-id="@user.Id">Reset Password</a>
+                            <td class="d-flex justify-content-start align-items-center">
+                                <a class="btn btn-primary" asp-action="ResetPassword" asp-controller="User" asp-route-id="@user.Id">Password</a> | 
+                                <form asp-action="ChangeRole" asp-controller="User" asp-route-id="@user.Id" method="post">
+                                    <button class="btn btn-secondary" type="submit">Role</button>
+                                </form>
                             </td>
                         </tr>
                     }

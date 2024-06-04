@@ -76,7 +76,7 @@ namespace BeReal.Areas.Admin.Controllers
             }
             await _signInManager.PasswordSignInAsync(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
-            return RedirectToAction(nameof(Index), "Post", new {area = "Admin"});
+            return RedirectToAction(nameof(Index), "Home", new {area = ""});
         }
         [HttpPost]
         public IActionResult Logout()
@@ -106,6 +106,11 @@ namespace BeReal.Areas.Admin.Controllers
             if (checkUsername != null)
             {
                 _notification.Error("This username is not available.");
+                return View(rvm);
+            }
+            if (rvm.Password != rvm.ConfirmPassword)
+            {
+                _notification.Error("Passwords do not match");
                 return View(rvm);
             }
             var user = new ApplicationUser()
@@ -168,6 +173,78 @@ namespace BeReal.Areas.Admin.Controllers
             }
             return View(rpvm);
         }
+
+        [HttpGet]
+        public IActionResult RegisterUser()
+        {
+            return View(new RegisterViewModel());
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> RegisterUser(RegisterViewModel rvm)
+        {
+            if (!ModelState.IsValid) 
+            {
+                _notification.Warning("Please fill in all the fields");
+                return View(rvm); 
+            }
+            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
+            if (checkEmail != null)
+            {
+                _notification.Error("This email is already registered.");
+                return View(rvm);
+            }
+            var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
+            if (checkUsername != null)
+            {
+                _notification.Error("This username is not available.");
+                return View(rvm);
+            }
+            if (rvm.Password != rvm.ConfirmPassword)
+            {
+                _notification.Error("Passwords do not match");
+                return View(rvm);
+            }
+            var user = new ApplicationUser()
+            {
+                FirstName = rvm.FirstName,
+                LastName = rvm.LastName,
+                UserName = rvm.Username,
+                Email = rvm.Email,
+            };
+            var checkUser = await _userManager.CreateAsync(user, rvm.Password!);
+            if (checkUser.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, Roles.User);
+                _notification.Success("User registered successfully!");
+                return RedirectToAction("Index", "Post", new { area = "Admin" });
+            }
+            return View(rvm);
+        }
+        [Authorize(Roles = "Admin")]
+        [HttpPost]
+        public async Task<IActionResult> ChangeRole(string id)
+        {
+            var thisUser = await _userManager.FindByIdAsync(id);
+            var userRole = await _userManager.GetRolesAsync(thisUser!);
+            if (thisUser == null)
+            {
+                _notification.Error("User does not exist");
+                return RedirectToAction("Index", "User", new {area = "Admin"});
+            }
+            if (userRole[0] == Roles.Admin)
+            {
+                await _userManager.RemoveFromRoleAsync(thisUser, Roles.Admin);
+                await _userManager.AddToRoleAsync(thisUser, Roles.User);
+            }
+            else if (userRole[0] == Roles.User)
+            {
+                await _userManager.RemoveFromRoleAsync(thisUser, Roles.User);
+                await _userManager.AddToRoleAsync(thisUser, Roles.Admin);
+            }
+            return RedirectToAction("Index", "User", new { area = "Admin" });
+        }
+
         [HttpGet("AccessDenied")]
         [Authorize]
         public IActionResult AccessDenied()

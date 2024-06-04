@@ -24,6 +24,21 @@
                             <span asp-validation-for="ShortDescription" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
+                            <label>Category</label>
+                            <select asp-for="Category" class="form-control">
+                                <option value="Sports">Sports</option>
+                                <option value="Travel">Travel</option>
+                                <option value="Lifestyle">Lifestyle</option>
+                                <option value="Programming">Programming</option>
+                            </select>
+                            <span asp-validation-for="Category" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
+                            <label>Tags</label>
+                            <input asp-for="Tags" type="text" class="form-control" />
+                            <span asp-validation-for="Tags" class="text-danger"></span>
+                        </div>
+                        <div class="mb-2">
                             <label>Description</label>
                             <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
                             <span asp-validation-for="Description" class="text-danger"></span>
@@ -45,6 +60,7 @@
     </div>
 </div>
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
     <script>
         $('.custom-file').on('change', function () {
             var fileName = $(this).val().split('\\').pop();

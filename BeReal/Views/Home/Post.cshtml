@@ -1,6 +1,8 @@
-﻿@model BeReal.ViewModels.BlogPostViewModel
+﻿@model BlogPostViewModel
 @{
     ViewData["Title"] = "Post";
+    ViewData["Description"] = Model.ShortDescription;
+    ViewData["Keywords"] = $"{Model.Tags?.Replace(",","")} {Model.Category}";
     string imageUrl = "";
     if (Model.ImageUrl == null)
     {
@@ -39,3 +41,30 @@
         </div>
     </div>
 </article>
+<div class="d-flex justify-content-center">
+    @{
+        await Html.RenderPartialAsync("_MainComment", new CommentViewModel { PostId = Model.Id, MainCommentId = 0 });
+    }
+    <div>
+        @foreach (var comment in Model.MainComments!)
+        {
+            <p>
+                @comment.Message --- @comment.Created
+            </p>
+            <h2>Sub Comments</h2>
+            <div>
+                @{
+                    await Html.RenderPartialAsync("_MainComment", new CommentViewModel { PostId = Model.Id, MainCommentId = comment.Id });
+                }
+                @foreach (var sc in comment.SubComments!)
+                {
+                    <p>
+                        @sc.Message --- @sc.Created
+                    </p>
+                }
+            </div>
+        }
+    </div>
+</div>
+
+

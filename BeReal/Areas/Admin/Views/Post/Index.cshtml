@@ -1,4 +1,6 @@
-﻿@model IEnumerable<BeReal.ViewModels.PostViewModel>
+﻿@using X.PagedList
+@using X.PagedList.Mvc.Core
+@model IPagedList<BeReal.ViewModels.PostViewModel>
 @{
     ViewData["Title"] = "Posts";
 }
@@ -42,6 +44,18 @@
                     </div>
                 </div>
             }
+        </div>
+        <div class="card-footer">
+            Page @(Model?.PageCount < Model?.PageNumber ? 0 : Model!.PageNumber) of @Model.PageCount
+            @Html.PagedListPager(Model, page => Url.Action("Index",
+                     new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }),
+                     new PagedListRenderOptions()
+            {
+                ContainerDivClasses = new List<string> { "d-flex justify-content-start mb-4" },
+                UlElementClasses = new List<string> { "pagination" },
+                LiElementClasses = new List<string> { "btn btn-primary mx-1 text-uppercase" },
+                ActiveLiElementClass = "active",
+            })
         </div>
     </div>
 </div>

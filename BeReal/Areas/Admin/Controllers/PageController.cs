@@ -12,14 +12,14 @@ namespace BeReal.Areas.Admin.Controllers
     public class PageController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
+        private readonly string _imagePath;
         public INotyfService _notification { get; }
         public PageController(ApplicationDbContext context,
-            IWebHostEnvironment webHostEnvironment,
+            IConfiguration config,
             INotyfService notification)
         {
             _context = context;
-            _webHostEnvironment = webHostEnvironment;   
+            _imagePath = config["Path:Images"]!;   
             _notification = notification;
         }
         [HttpGet]
@@ -51,6 +51,8 @@ namespace BeReal.Areas.Admin.Controllers
             page.Description = vm.Description;
             if (vm.Image != null)
             {
+                if (page.ImageUrl != null)
+                    RemoveImage(page.ImageUrl);
                 page.ImageUrl = GetImagePath(vm.Image);
             }
             await _context.SaveChangesAsync();
@@ -87,6 +89,8 @@ namespace BeReal.Areas.Admin.Controllers
             page.Description = vm.Description;
             if (vm.Image != null)
             {
+                if (page.ImageUrl != null)
+                    RemoveImage(page.ImageUrl);
                 page.ImageUrl = GetImagePath(vm.Image);
             }
             await _context.SaveChangesAsync();
@@ -123,6 +127,8 @@ namespace BeReal.Areas.Admin.Controllers
             page.Description = vm.Description;
             if (vm.Image != null)
             {
+                if (page.ImageUrl != null) 
+                    RemoveImage(page.ImageUrl);
                 page.ImageUrl = GetImagePath(vm.Image);
             }
             await _context.SaveChangesAsync();
@@ -132,15 +138,32 @@ namespace BeReal.Areas.Admin.Controllers
         }
         private string GetImagePath(IFormFile formFile)
         {
-            string uniqueFileName = "";
-            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-            uniqueFileName = Guid.NewGuid().ToString() + "_" + formFile.FileName;
+            var folderPath = Path.Combine(_imagePath);
+            if (!Directory.Exists(folderPath))
+                Directory.CreateDirectory(folderPath);
+            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf('.'));
+            var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
             var filePath = Path.Combine(folderPath, uniqueFileName);
             using (FileStream fileStream = System.IO.File.Create(filePath))
             {
-                formFile.CopyTo(fileStream);
+                formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
             }
             return uniqueFileName;
+        }
+        private bool RemoveImage(string image)
+        {
+            try
+            {
+                var file = Path.Combine(_imagePath, image);
+                if (System.IO.File.Exists(file))
+                    System.IO.File.Delete(file);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
     }
 }

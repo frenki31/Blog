@@ -1,6 +1,10 @@
 ﻿@model BeReal.ViewModels.HomeViewModel
+@using X.PagedList
+@using X.PagedList.Mvc.Core
 @{
     ViewData["Title"] = "Home Page";
+    ViewData["Description"] = "A blogging website";
+    ViewData["Keywords"] = "blog travel sports programming photography";
     string imageUrl = "";
     if (Model.ImageUrl != null)
     {
@@ -30,20 +34,47 @@
             @foreach (var post in Model.Posts!)
             {
                 <div class="post-preview">
-                    <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
-                        <h2 class="post-title">@post.Title</h2>
-                        <h3 class="post-subtitle">@post.ShortDescription</h3>
-                    </a>
-                    <p class="post-meta">
-                        Posted by
-                        <a href="#!">@post.Author</a>
-                        on @post.publicationDate.ToShortDateString()
-                    </p>
+                    <div class="row">
+                        <div class="col">
+                            <a asp-action="Post" asp-controller="Home" asp-route-slug="@post.Slug">
+                                <h2 class="post-title">@post.Title</h2>
+                                <h4 class="post-subtitle">@post.ShortDescription</h4>
+                            </a>
+                            <p class="post-meta">
+                                Posted by
+                                <a href="#!">@post.Author</a>
+                                on @post.publicationDate.ToShortDateString()
+                            </p>
+                        </div>
+                        <div class="col-5 d-flex justify-content-end flex-column">
+                            @if (post.Image == null)
+                            {
+                                <a asp-action="Post" asp-controller="Home" asp-route-slug="@post.Slug">
+                                    <img class="img-fluid" src="~/images/default_image.png" style="object-fit:cover; height:100%; width:100%" />
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="Post" asp-controller="Home" asp-route-slug="@post.Slug">
+                                    <img class="img-fluid" src="~/images/@post.Image" style="object-fit:cover; height:100%; width:100%" />
+                                </a>
+                            }
+                        </div>
+                    </div>
+                    
                 </div>
                 <hr class="my-4" />
             }
-            <!-- Pager-->
-            <div class="d-flex justify-content-end mb-4"><a class="btn btn-primary text-uppercase" href="#!">Older Posts →</a></div>
+            Page @(Model?.Posts.PageCount < Model?.Posts.PageNumber ? 0 : Model!.Posts.PageNumber) of @Model.Posts.PageCount
+            @Html.PagedListPager(Model.Posts, page => Url.Action("Index",
+                     new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }),
+                     new PagedListRenderOptions()
+            {
+                ContainerDivClasses = new List<string> { "d-flex justify-content-start mb-4" },
+                UlElementClasses = new List<string> { "pagination" },
+                LiElementClasses = new List<string> { "btn btn-primary mx-1 text-uppercase" },
+                ActiveLiElementClass = "active",
+            })
         </div>
     </div>
 </div>

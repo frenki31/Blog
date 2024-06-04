@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using BeReal.Models;
 using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
+using X.PagedList;
 
 namespace BeReal.Areas.Admin.Controllers
 {
@@ -16,9 +17,11 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
+        private string _imagePath;
         private readonly UserManager<ApplicationUser> _userManager;
         public INotyfService _notification { get; }
         public PostController(ApplicationDbContext context, 
+            IConfiguration config,
             INotyfService notification,
             IWebHostEnvironment webHostEnvironment,
             UserManager<ApplicationUser> userManager)
@@ -27,9 +30,10 @@ namespace BeReal.Areas.Admin.Controllers
             _notification = notification;
             _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
+            _imagePath = config["Path:Images"]!;
         }
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? page)
         {
             var posts = new List<Post>();
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
@@ -42,6 +46,8 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 posts = await _context.Posts.Include(x => x.User).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
             }
+            var pageSize = 4;
+            var pageNumber = (page ?? 1);
             var postVms = posts.Select(x => new PostViewModel()
             {
                 Id = x.Id,
@@ -50,17 +56,17 @@ namespace BeReal.Areas.Admin.Controllers
                 Author = x.Author,
                 publicationDate = x.publicationDate,
                 Image = x.Image,
+                Category = x.Category,
+                Tags = x.Tags,
             }).ToList();
-            return View(postVms);
+            return View(await postVms.OrderByDescending(x => x.publicationDate).ToPagedListAsync(pageNumber, pageSize));
         }
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public IActionResult Create()
         {
             return View(new CreatePostViewModel());
         }
         [HttpPost]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
             if (!ModelState.IsValid) { return View(model); }
@@ -70,6 +76,8 @@ namespace BeReal.Areas.Admin.Controllers
                 Title = model.Title,
                 ShortDescription = model.ShortDescription,
                 Description = model.Description,
+                Category = model.Category,
+                Tags = model.Tags,
                 User = loggedUser,
                 Author = loggedUser!.FirstName + " " + loggedUser.LastName,
             };
@@ -100,7 +108,7 @@ namespace BeReal.Areas.Admin.Controllers
             }
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
-            if (loggedUserRole[0] != Roles.Admin || loggedUser!.Id != post.User!.Id)
+            if (loggedUserRole[0] != Roles.Admin && loggedUser!.Id != post.User!.Id)
             {
                 _notification.Error("You are not authorized");
                 return RedirectToAction("Index");
@@ -111,6 +119,8 @@ namespace BeReal.Areas.Admin.Controllers
                 ShortDescription = post.ShortDescription,
                 Description = post.Description,
                 ImageUrl = post.Image,
+                Category = post.Category,
+                Tags = post.Tags,
             };
             return View(edit);
         }
@@ -127,8 +137,12 @@ namespace BeReal.Areas.Admin.Controllers
             post.Title = vm.Title;
             post.ShortDescription = vm.ShortDescription;
             post.Description = vm.Description;
+            post.Category = vm.Category;
+            post.Tags = vm.Tags;
             if (vm.Image != null)
             {
+                if (post.Image != null) 
+                    RemoveImage(post.Image);
                 post.Image = GetImagePath(vm.Image);
             }
             await _context.SaveChangesAsync();
@@ -154,15 +168,34 @@ namespace BeReal.Areas.Admin.Controllers
 
         private string GetImagePath(IFormFile formFile)
         {
-            string uniqueFileName = "";
-            var folderPath = Path.Combine(_webHostEnvironment.WebRootPath, "images");
-            uniqueFileName = Guid.NewGuid().ToString() + "_" + formFile.FileName;
+            var folderPath = Path.Combine(_imagePath);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf("."));
+            var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
             var filePath = Path.Combine(folderPath, uniqueFileName);
             using (FileStream fileStream = System.IO.File.Create(filePath))
             {
-                formFile.CopyTo(fileStream);
+                formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
             }
             return uniqueFileName;
+        }
+        private bool RemoveImage(string image)
+        {
+            try
+            {
+                var file = Path.Combine(_imagePath, image);
+                if (System.IO.File.Exists(file))
+                    System.IO.File.Delete(file);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
         }
     }
 }
