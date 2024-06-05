@@ -1,5 +1,6 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
 using BeReal.Data;
+using BeReal.Models;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -135,6 +136,44 @@ namespace BeReal.Areas.Admin.Controllers
             _notification.Success("Privacy Page Updated Successfully");
             return RedirectToAction("Index", "Post", new { area = "Admin" });
 
+        }
+        [HttpGet]
+        public async Task<IActionResult> Index()
+        {
+            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
+            var vm = new PageViewModel()
+            {
+                Id = page!.Id,
+                Title = page.Title,
+                ShortDescription = page.ShortDescription,
+                Description = page.Description,
+                ImageUrl = page.ImageUrl,
+            };
+            return View(vm);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Index(PageViewModel vm)
+        {
+            if (!ModelState.IsValid) { return View(vm); }
+            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
+            if (page == null)
+            {
+                _notification.Error("Page not found");
+                return View(vm);
+            }
+            page.Title = vm.Title;
+            page.Description = vm.Description;
+            page.ShortDescription = vm.ShortDescription;
+            if (vm.Image != null)
+            {
+                if (page.ImageUrl != null)
+                    RemoveImage(page.ImageUrl);
+                page.ImageUrl = GetImagePath(vm.Image);
+            }
+            await _context.SaveChangesAsync();
+            _notification.Success("Home Page updated successfully");
+            return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
         private string GetImagePath(IFormFile formFile)
         {

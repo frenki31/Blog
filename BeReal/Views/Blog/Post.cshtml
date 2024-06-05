@@ -1,4 +1,6 @@
 ﻿@model BlogPostViewModel
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager;
 @{
     ViewData["Title"] = "Post";
     ViewData["Description"] = Model.ShortDescription;
@@ -12,6 +14,8 @@
     {
         imageUrl = "/images/" + Model.ImageUrl;
     }
+    var authUser = new ApplicationUser();
+    authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
 }
 <!-- Page Header-->
 <header class="masthead" style="background-image: url('@imageUrl')">
@@ -42,7 +46,8 @@
     </div>
 </article>
 <div class="d-flex justify-content-center">
-    @{
+    @if (User.Identity!.IsAuthenticated)
+    {
         await Html.RenderPartialAsync("_MainComment", new CommentViewModel { PostId = Model.Id, MainCommentId = 0 });
     }
     <div>

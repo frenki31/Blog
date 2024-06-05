@@ -16,19 +16,16 @@ namespace BeReal.Areas.Admin.Controllers
     public class PostController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _webHostEnvironment;
         private string _imagePath;
         private readonly UserManager<ApplicationUser> _userManager;
         public INotyfService _notification { get; }
         public PostController(ApplicationDbContext context, 
             IConfiguration config,
             INotyfService notification,
-            IWebHostEnvironment webHostEnvironment,
             UserManager<ApplicationUser> userManager)
         {
             _context = context;
             _notification = notification;
-            _webHostEnvironment = webHostEnvironment;
             _userManager = userManager;
             _imagePath = config["Path:Images"]!;
         }
@@ -40,11 +37,11 @@ namespace BeReal.Areas.Admin.Controllers
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin)
             {
-                posts = await _context.Posts.Include(x => x.User).ToListAsync();
+                posts = await _context.Posts.Include(x => x.User).Include(x => x.MainComments).ToListAsync();
             }
             else
             {
-                posts = await _context.Posts.Include(x => x.User).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
+                posts = await _context.Posts.Include(x => x.User).Include(x => x.MainComments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
             }
             var pageSize = 4;
             var pageNumber = (page ?? 1);
@@ -58,6 +55,8 @@ namespace BeReal.Areas.Admin.Controllers
                 Image = x.Image,
                 Category = x.Category,
                 Tags = x.Tags,
+                Approved = x.Approved,
+                MainComments = x.MainComments,
             }).ToList();
             return View(await postVms.OrderByDescending(x => x.publicationDate).ToPagedListAsync(pageNumber, pageSize));
         }
@@ -71,6 +70,7 @@ namespace BeReal.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) { return View(model); }
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
+            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             var post = new Post
             {
                 Title = model.Title,
@@ -91,9 +91,18 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 post.Image = GetImagePath(model.Image);
             }
+            if (loggedUserRole[0] == Roles.Admin)
+            {
+                post.Approved = true;
+                _notification.Success("Post Created Successfully");
+            }else if (loggedUserRole[0] == Roles.User)
+            {
+                post.Approved = false;
+                _notification.Success("Waiting for approval");
+            }
             await _context.Posts.AddAsync(post);
             await _context.SaveChangesAsync();
-            _notification.Success("Post Create Successfully");
+            
             return RedirectToAction("Index");
         }
         
@@ -121,6 +130,7 @@ namespace BeReal.Areas.Admin.Controllers
                 ImageUrl = post.Image,
                 Category = post.Category,
                 Tags = post.Tags,
+                Approved = post.Approved,
             };
             return View(edit);
         }
@@ -139,6 +149,7 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
+            post.Approved = vm.Approved;
             if (vm.Image != null)
             {
                 if (post.Image != null) 
@@ -166,6 +177,22 @@ namespace BeReal.Areas.Admin.Controllers
             return View();
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> Approve(int id)
+        {
+            var post = _context.Posts.FirstOrDefault(p => p.Id == id);
+            if (post == null)
+            {
+                _notification.Error("Post does not exist");
+                return RedirectToAction("Index", "Post", new { area = "Admin" });
+            }
+            post.Approved = true;
+            _notification.Success("Post was approved");
+            _context.Posts.Update(post);
+            await _context.SaveChangesAsync();
+            return RedirectToAction("Index", "Post", new { area = "Admin" });
+        }
         private string GetImagePath(IFormFile formFile)
         {
             var folderPath = Path.Combine(_imagePath);

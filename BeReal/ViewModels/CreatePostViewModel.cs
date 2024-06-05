@@ -14,5 +14,6 @@ namespace BeReal.ViewModels
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public IFormFile? Image { get; set; }
+        public bool Approved { get; set; }
     }
 }

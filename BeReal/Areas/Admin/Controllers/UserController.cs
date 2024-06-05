@@ -76,7 +76,7 @@ namespace BeReal.Areas.Admin.Controllers
             }
             await _signInManager.PasswordSignInAsync(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
-            return RedirectToAction(nameof(Index), "Home", new {area = ""});
+            return RedirectToAction(nameof(Index), "Post", new {area = "Admin"});
         }
         [HttpPost]
         public IActionResult Logout()

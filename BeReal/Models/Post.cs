@@ -16,6 +16,7 @@ namespace BeReal.Models
         public string? Image { get; set; }
         public string? Category { get; set; }
         public string? Tags { get; set; }
+        public bool Approved { get; set; }
         public List<MainComment>? MainComments { get; set; }
     }
 }

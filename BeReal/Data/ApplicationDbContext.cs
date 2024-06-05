@@ -14,7 +14,6 @@ namespace BeReal.Data
         public DbSet<ApplicationUser> ApplicationUsers { get; set; }
         public DbSet<Post> Posts { get; set; }
         public DbSet<Page> Pages { get; set; }  
-        public DbSet<Setting> Settings { get; set; }
         public DbSet<MainComment> MainComments { get; set; }
         public DbSet<SubComment> SubComments { get; set; }
     }

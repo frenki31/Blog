@@ -13,34 +13,59 @@ namespace BeReal.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
         private readonly ApplicationDbContext _context;
         public INotyfService _notification { get; }
-        public HomeController(INotyfService notification,ILogger<HomeController> logger, ApplicationDbContext context)
+        public HomeController(INotyfService notification, ApplicationDbContext context)
         {
-            _logger = logger;
             _context = context;
             _notification = notification;
         }
-
-        public async Task<IActionResult> Index(int? page, string category)
+        public async Task<IActionResult> Index(int? page, string category, string search, DateTime startDate, DateTime endDate)
         {
             var viewModel = new HomeViewModel();
-            var setting = _context.Settings.ToList();
-            viewModel.Title = setting[0].Title;
-            viewModel.ShortDescription = setting[0].Description;
-            viewModel.ImageUrl = setting[0].ImageUrl;
+            var home = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
+            viewModel.Title = home!.Title;
+            viewModel.ShortDescription = home.ShortDescription;
+            viewModel.ImageUrl = home.ImageUrl;
             int pageSize = 4;
             int pageNumber = (page ?? 1);
-            viewModel.Posts = string.IsNullOrEmpty(category) ? 
-                await _context.Posts.OrderByDescending(x => x.publicationDate)
-                                    .ToPagedListAsync(pageNumber, pageSize) 
-                : await _context.Posts.Where(post => post.Category!.ToLower().Equals(category.ToLower()))
-                                      .OrderByDescending(x => x.publicationDate)
-                                      .ToPagedListAsync(pageNumber, pageSize);
+            //create a query
+            var query = _context.Posts.AsQueryable();
+            //order all approved posts by date desc
+            query = query.OrderByDescending(x => x.publicationDate).Where(x => x.Approved == true);
+            //filter by category
+            query = string.IsNullOrEmpty(category) ? query : query.Where(post => post.Category!.ToLower().Equals(category.ToLower()));
+            //filter by searchword
+            query = string.IsNullOrEmpty(search) ? query : query.Where(x => x.Title!.Contains(search) || x.Author!.Contains(search) ||
+                                                                       x.ShortDescription!.Contains(search) || x.Description!.Contains(search));
+            //filter by date
+            if (startDate != DateTime.MinValue && endDate != DateTime.MinValue && startDate < endDate)
+            {
+                query = query.Where(x => x.publicationDate >= startDate && x.publicationDate <= endDate);
+            }
+            else if (startDate != DateTime.MinValue && endDate == DateTime.MinValue)
+            {
+                query = query.Where(x => x.publicationDate >= startDate);
+            }
+            else if (endDate != DateTime.MinValue && startDate == DateTime.MinValue)
+            {
+                query = query.Where(x => x.publicationDate <= endDate);
+            }
+            else if (startDate == endDate && endDate != DateTime.MinValue && startDate != DateTime.MinValue)
+            {
+                query = query.Where(x => x.publicationDate == startDate);
+            }
+            else if (startDate > endDate)
+            {
+                _notification.Error("Start date must be earlier than end date");
+            }
+            else if (endDate == DateTime.MinValue && startDate == DateTime.MinValue)
+            {
+                _notification.Error("Choose the dates");
+            }
+            viewModel.Posts = query.ToPagedList(pageNumber, pageSize);
             return View(viewModel);
         }
-
         public async Task<IActionResult> About()
         {
             var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "about");
@@ -76,70 +101,6 @@ namespace BeReal.Controllers
                 ImageUrl = page.ImageUrl,
             };
             return View(vm);
-        }
-
-        [HttpGet("[controller]/{slug}")]
-        public async Task<IActionResult> Post(string slug)
-        {
-            if (slug == "")
-            {
-                _notification.Error("Post not found");
-                return View();
-            }
-            var post = await _context.Posts.Include(p => p.MainComments)!
-                                           .ThenInclude(mc => mc.SubComments)
-                                           .FirstOrDefaultAsync(x => x.Slug == slug);
-            if (post == null)
-            {
-                _notification.Error("Post not found");
-                return View();
-            }
-            var vm = new BlogPostViewModel()
-            {
-                Id = post.Id,
-                Author = post.Author,
-                Description = post.Description,
-                PublicationDate = post.publicationDate,
-                ShortDescription = post.ShortDescription,
-                Title = post.Title,
-                ImageUrl = post.Image,
-                Tags = post.Tags,
-                Category = post.Category,
-                MainComments = post.MainComments,
-            };
-            return View(vm);
-        }
-        [HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Comment(CommentViewModel vm)
-        {
-            if (!ModelState.IsValid) { return RedirectToAction("Index", "Home"); }
-            var post = await _context.Posts
-                                     .Include(p => p.MainComments)!
-                                     .ThenInclude(mc => mc.SubComments)
-                                     .FirstOrDefaultAsync(x => x.Id == vm.PostId);
-            if (vm.MainCommentId == 0)
-            {
-                post!.MainComments = post.MainComments ?? new List<MainComment>();
-                post.MainComments.Add(new MainComment
-                {
-                    Message = vm.Message,
-                    Created = DateTime.Now,
-                });
-                _context.Posts.Update(post);
-            }
-            else
-            {
-                var comment = new SubComment()
-                {
-                    MainCommentId = vm.MainCommentId,
-                    Message = vm.Message,
-                    Created = DateTime.Now,
-                };
-                _context.SubComments.Add(comment);
-            }
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Post", new { slug = post!.Slug });
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
