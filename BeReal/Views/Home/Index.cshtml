@@ -1,6 +1,4 @@
 ﻿@model BeReal.ViewModels.HomeViewModel
-@using X.PagedList
-@using X.PagedList.Mvc.Core
 @{
     ViewData["Title"] = "Home Page";
     ViewData["Description"] = "A blogging website";
@@ -32,25 +30,27 @@
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
         <div class="col-md-10 col-lg-8 col-xl-7 ">
-                <form asp-controller="Home" asp-action="Index" asp-route-search="@Model.Search" class="d-none d-md-inline-block form-inline">
+                <form asp-controller="Home" asp-action="Index" class="form-horizontal">
                     <div class="input-group mb-3">
-                        <input asp-for="Search" type="text" placeholder="Search for a post..." />
-                        <div class="input-group-append">
-                            <button type="submit" class="btn btn-outline-secondary">Search</button>
-                        </div>
+                        <input asp-for="Search" type="text" placeholder="Search for a post..." class="form-control"/>
                     </div>
                 </form>
-
-                <form>
-                    <input asp-for="StartDate" asp-route-startdate="@Model.StartDate" />
-                    <input asp-for="EndDate" asp-route-enddate="@Model.EndDate" />
-                    <select asp-for="Category">
-                        <option value="Programming" asp-route-category="Programming">Programming</option>
-                        <option value="Sports" asp-route-category="Sporst">Sports</option>
-                        <option value="Lifestyle" asp-route-category="Lifestyle">Lifestyle</option>
-                    </select>
-
-                </form>
+            <form asp-controller="Home" asp-action="Index" class="form-horizontal">
+                <div class="input-group input-group-sm">
+                    <input asp-for="StartDate" class="date-picker form-control" placeholder="Start date" />
+                    <input asp-for="EndDate" class="date-picker form-control" placeholder="End date" />
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-outline-secondary">Search</button>
+                    </div>
+                </div>
+            </form>
+            <form asp-controller="Home" asp-action="Index">
+                <input type="submit" value="All" class="btn btn-default"/>
+                <input type="submit" value="Programming" class="btn btn-default"/>
+                <input type="submit" value="Travel" class="btn btn-default" />
+                <input type="submit" value="Sports" class="btn btn-default" />
+                <input type="submit" value="Lifestyle" class="btn btn-default" />
+            </form>
             @foreach (var post in Model.Posts!)
             {
                 <div class="post-preview">
@@ -67,34 +67,55 @@
                             </p>
                         </div>
                         <div class="col-5 d-flex justify-content-end flex-column">
-                            @if (post.Image == null)
-                            {
-                                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
-                                    <img class="img-fluid" src="~/images/default_image.png" style="object-fit:cover; height:100%; width:100%" />
-                                </a>
+                            @{
+                                string Image = post.Image == null ? "default_image.png" : post.Image;
                             }
-                            else
-                            {
-                                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
-                                    <img class="img-fluid" src="~/images/@post.Image" style="object-fit:cover; height:100%; width:100%" />
-                                </a>
-                            }
+                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
+                                <img class="img-fluid" src="~/images/@Image" style="object-fit:cover; height:100%; width:100%" />
+                            </a>
                         </div>
                     </div>
                     
                 </div>
                 <hr class="my-4" />
             }
-            Page @(Model?.Posts.PageCount < Model?.Posts.PageNumber ? 0 : Model!.Posts.PageNumber) of @Model.Posts.PageCount
-            @Html.PagedListPager(Model.Posts, page => Url.Action("Index",
-                     new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }),
-                     new PagedListRenderOptions()
-            {
-                ContainerDivClasses = new List<string> { "d-flex justify-content-start mb-4" },
-                UlElementClasses = new List<string> { "pagination" },
-                LiElementClasses = new List<string> { "btn btn-primary mx-1 text-uppercase" },
-                ActiveLiElementClass = "active",
-            })
+            <nav aria-label="Page navigation example">
+                <ul class="pagination">
+                    @if (Model.PageNumber > 1)
+                    {
+                        <li class="page-item">
+                            <a aria-label="previous" class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
+                               asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber-1)">
+                                <i class="fa-solid fa-chevron-left"></i>
+                            </a>
+                        </li>
+                    }
+                    @foreach (var page in Model.Pages!)
+                    {
+                        if (page == -1)
+                        {
+                            <span class="btn btn-outline-secondary">
+                            ...
+                            </span>
+                        }
+                        else
+                        {
+                            string active = page == Model.PageNumber ? "active" : "";
+                            <li class="page-item @active">
+                                <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
+                                   asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(page)">@(page)</a>
+                            </li>
+                        }
+                    }
+                    @if (Model.NextPage)
+                    {
+                        <li class="page-item">
+                            <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
+                               asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber+1)"><i class="fa-solid fa-chevron-right"></i></a>
+                        </li>
+                    }
+                </ul>
+            </nav>
         </div>
     </div>
 </div>

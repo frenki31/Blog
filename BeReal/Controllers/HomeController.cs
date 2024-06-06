@@ -1,13 +1,8 @@
 using AspNetCoreHero.ToastNotification.Abstractions;
 using BeReal.Data;
-using BeReal.Models;
-using BeReal.Models.Comments;
 using BeReal.ViewModels;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Diagnostics;
-using X.PagedList;
 
 namespace BeReal.Controllers
 {
@@ -20,15 +15,13 @@ namespace BeReal.Controllers
             _context = context;
             _notification = notification;
         }
-        public async Task<IActionResult> Index(int? page, string category, string search, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> Index(int page, string category, string search, DateTime startDate, DateTime endDate)
         {
-            var viewModel = new HomeViewModel();
+            if (page < 1)
+                return RedirectToAction("Index", new { page = 1, search, category, startDate, endDate });
+            
             var home = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
-            viewModel.Title = home!.Title;
-            viewModel.ShortDescription = home.ShortDescription;
-            viewModel.ImageUrl = home.ImageUrl;
-            int pageSize = 4;
-            int pageNumber = (page ?? 1);
+            
             //create a query
             var query = _context.Posts.AsQueryable();
             //order all approved posts by date desc
@@ -63,7 +56,25 @@ namespace BeReal.Controllers
             {
                 _notification.Error("Choose the dates");
             }
-            viewModel.Posts = query.ToPagedList(pageNumber, pageSize);
+            int postCount = query.Count();
+            int pageSize = 5;
+            int skip = pageSize * (page - 1);
+            int pageCount = (int)Math.Ceiling((double)postCount / pageSize);
+            var viewModel = new HomeViewModel()
+            {
+                Title = home!.Title,
+                ShortDescription = home.ShortDescription,
+                ImageUrl = home.ImageUrl,
+                Category = category,
+                Search = search,
+                StartDate = startDate,
+                EndDate = endDate,
+                PageNumber = page,
+                NextPage = postCount > skip + pageSize,
+                PageCount = pageCount,
+                Posts = query.Skip(skip).Take(pageSize).ToList(),
+                Pages = Pages(page, pageCount),
+            };
             return View(viewModel);
         }
         public async Task<IActionResult> About()
@@ -102,11 +113,44 @@ namespace BeReal.Controllers
             };
             return View(vm);
         }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
+        public List<int> Pages (int PageNumber, int PageCount)
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            List<int> pages = new List<int>();
+            if (PageCount <= 5)
+            {
+                for (int i = 1; i <= PageCount; i++)
+                    pages.Add(i);
+            }
+            else
+            {
+                int mid = PageNumber;
+                if (mid < 3)
+                    mid = 3;
+                else if (mid > PageCount)
+                    mid = PageCount - 2;
+
+                for (int i = mid - 2; i <= mid + 2; i++)
+                {
+                    pages.Add(i);
+                }
+                if (pages[0] != 1)
+                {
+                    pages.Insert(0, 1);
+                    if (pages[1] - pages[0] > 1)
+                    {
+                        pages.Insert(1, -1);
+                    }
+                }
+                if (pages[pages.Count - 1] != PageCount)
+                {
+                    pages.Insert(pages.Count, PageCount);
+                    if (pages[pages.Count - 1] - pages[pages.Count - 2] > 1)
+                    {
+                        pages.Insert(pages.Count - 1, -1);
+                    }
+                }
+            }
+            return pages;
         }
     }
 }

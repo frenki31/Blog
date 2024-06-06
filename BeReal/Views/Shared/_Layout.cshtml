@@ -1,5 +1,11 @@
 ﻿@using BeReal.Data
 @using BeReal.ViewModels
+@using Microsoft.AspNetCore.Identity
+@inject UserManager<ApplicationUser> userManager
+@{
+    var authUser = new ApplicationUser();
+    authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
+}
 
 <!DOCTYPE html>
 <html lang="en">

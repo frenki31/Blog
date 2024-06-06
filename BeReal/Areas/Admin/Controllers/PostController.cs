@@ -17,6 +17,7 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private string _imagePath;
+        private string _documentPath;
         private readonly UserManager<ApplicationUser> _userManager;
         public INotyfService _notification { get; }
         public PostController(ApplicationDbContext context, 
@@ -28,6 +29,7 @@ namespace BeReal.Areas.Admin.Controllers
             _notification = notification;
             _userManager = userManager;
             _imagePath = config["Path:Images"]!;
+            _documentPath = config["Path:Documents"]!;
         }
         [HttpGet]
         public async Task<IActionResult> Index(int? page)
@@ -43,7 +45,7 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 posts = await _context.Posts.Include(x => x.User).Include(x => x.MainComments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
             }
-            var pageSize = 4;
+            var pageSize = 5;
             var pageNumber = (page ?? 1);
             var postVms = posts.Select(x => new PostViewModel()
             {
@@ -91,6 +93,10 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 post.Image = GetImagePath(model.Image);
             }
+            if (model.Document != null)
+            {
+                post.Document = GetDocPath(model.Document);
+            }
             if (loggedUserRole[0] == Roles.Admin)
             {
                 post.Approved = true;
@@ -122,7 +128,7 @@ namespace BeReal.Areas.Admin.Controllers
                 _notification.Error("You are not authorized");
                 return RedirectToAction("Index");
             }
-            var edit = new CreatePostViewModel() { 
+            var edit = new CreatePostViewModel { 
                 Id = post.Id,
                 Title = post.Title,
                 ShortDescription = post.ShortDescription,
@@ -131,12 +137,15 @@ namespace BeReal.Areas.Admin.Controllers
                 Category = post.Category,
                 Tags = post.Tags,
                 Approved = post.Approved,
+                DocumentUrl = post.Document,
             };
             return View(edit);
         }
         [HttpPost]
         public async Task<IActionResult> Edit(CreatePostViewModel vm) 
         { 
+            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
+            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (!ModelState.IsValid) {  return View(vm); }
             var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == vm.Id);
             if (post == null)
@@ -149,17 +158,23 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
-            post.Approved = vm.Approved;
             if (vm.Image != null)
             {
                 if (post.Image != null) 
                     RemoveImage(post.Image);
                 post.Image = GetImagePath(vm.Image);
             }
+            if (vm.Document != null)
+            {
+                if (post.Document != null)
+                    RemoveDocument(post.Document);
+                post.Document = GetImagePath(vm.Document);
+            }
+            post.Approved = loggedUserRole[0] == Roles.Admin ? true : false;
+            string message = post.Approved == true ? "Post Updated Successfully" : "Post Updated. Waiting for approval";
             await _context.SaveChangesAsync();
-            _notification.Success("Post Updated Successfully");
+            _notification.Success(message);
             return RedirectToAction("Index", "Post", new { area = "Admin" });
-
         }
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
@@ -209,6 +224,21 @@ namespace BeReal.Areas.Admin.Controllers
             }
             return uniqueFileName;
         }
+        private bool RemoveDocument(string document)
+        {
+            try
+            {
+                var file = Path.Combine(_documentPath, document);
+                if (System.IO.File.Exists(file))
+                    System.IO.File.Delete(file);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return false;
+            }
+        }
         private bool RemoveImage(string image)
         {
             try
@@ -223,6 +253,28 @@ namespace BeReal.Areas.Admin.Controllers
                 Console.WriteLine(ex.Message);
                 return false;
             }
+        }
+
+        private string GetDocPath(IFormFile formFile)
+        {
+            var uniqueFileName = "";
+            var folderPath = Path.Combine(_documentPath);
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf("."));
+            var allowed = new List<string> { ".pdf",".docx",".xlsx",".csv"};
+            if (allowed.Contains(suffix))
+            {
+                uniqueFileName = $"file_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
+                var filePath = Path.Combine(folderPath, uniqueFileName);
+                using (FileStream fileStream = System.IO.File.Create(filePath))
+                {
+                    formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
+                }
+            }
+            return uniqueFileName;
         }
     }
 }
