@@ -1,4 +1,5 @@
-﻿@model BeReal.ViewModels.CreatePostViewModel
+﻿@using BeReal.ViewModels
+@model BeReal.ViewModels.CreatePostViewModel
 @{
     ViewData["Title"] = "Create Post";
 }
@@ -50,11 +51,11 @@
                         </div>
                         <div class="mb-2">
                             <label>Image</label>
-                            <input asp-for="Image" type="file" class="custom-file" id="image"/>
+                            <input asp-for="Image" type="file" class="custom-file" />
                         </div>
                         <div class="mb-2">
                             <label>Document</label>
-                            <input asp-for="Document" type="file" />
+                            <input asp-for="File!.UploadedFile" type="file"  />
                         </div>
                     </div>
                 </div>

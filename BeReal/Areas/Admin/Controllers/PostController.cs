@@ -17,7 +17,6 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly ApplicationDbContext _context;
         private string _imagePath;
-        private string _documentPath;
         private readonly UserManager<ApplicationUser> _userManager;
         public INotyfService _notification { get; }
         public PostController(ApplicationDbContext context, 
@@ -29,7 +28,6 @@ namespace BeReal.Areas.Admin.Controllers
             _notification = notification;
             _userManager = userManager;
             _imagePath = config["Path:Images"]!;
-            _documentPath = config["Path:Documents"]!;
         }
         [HttpGet]
         public async Task<IActionResult> Index(int? page)
@@ -39,11 +37,11 @@ namespace BeReal.Areas.Admin.Controllers
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin)
             {
-                posts = await _context.Posts.Include(x => x.User).Include(x => x.MainComments).ToListAsync();
+                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.MainComments).ToListAsync();
             }
             else
             {
-                posts = await _context.Posts.Include(x => x.User).Include(x => x.MainComments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
+                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.MainComments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
             }
             var pageSize = 5;
             var pageNumber = (page ?? 1);
@@ -59,6 +57,7 @@ namespace BeReal.Areas.Admin.Controllers
                 Tags = x.Tags,
                 Approved = x.Approved,
                 MainComments = x.MainComments,
+                Document = x.Document,
             }).ToList();
             return View(await postVms.OrderByDescending(x => x.publicationDate).ToPagedListAsync(pageNumber, pageSize));
         }
@@ -73,6 +72,9 @@ namespace BeReal.Areas.Admin.Controllers
             if (!ModelState.IsValid) { return View(model); }
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var file = await GetFileInfo(model);
+            await _context.Files.AddAsync(file);
+            await _context.SaveChangesAsync();
             var post = new Post
             {
                 Title = model.Title,
@@ -82,6 +84,7 @@ namespace BeReal.Areas.Admin.Controllers
                 Tags = model.Tags,
                 User = loggedUser,
                 Author = loggedUser!.FirstName + " " + loggedUser.LastName,
+                Document = file,
             };
             if (post.Title != null)
             {
@@ -92,10 +95,6 @@ namespace BeReal.Areas.Admin.Controllers
             if (model.Image != null)
             {
                 post.Image = GetImagePath(model.Image);
-            }
-            if (model.Document != null)
-            {
-                post.Document = GetDocPath(model.Document);
             }
             if (loggedUserRole[0] == Roles.Admin)
             {
@@ -115,7 +114,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == id);
+            var post = await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.Id == id);
             if (post == null)
             {
                 _notification.Error("Post not found");
@@ -137,7 +136,7 @@ namespace BeReal.Areas.Admin.Controllers
                 Category = post.Category,
                 Tags = post.Tags,
                 Approved = post.Approved,
-                DocumentUrl = post.Document,
+                File = new FileViewModel { Id = post.Document!.Id, ContentType = post.Document.ContentType, Name = post.Document.FileName },
             };
             return View(edit);
         }
@@ -147,7 +146,7 @@ namespace BeReal.Areas.Admin.Controllers
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (!ModelState.IsValid) {  return View(vm); }
-            var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == vm.Id);
+            var post = await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.Id == vm.Id);
             if (post == null)
             {
                 _notification.Error("Post not found");
@@ -158,17 +157,12 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
+            post.Document = await GetFileInfo(vm);
             if (vm.Image != null)
             {
                 if (post.Image != null) 
                     RemoveImage(post.Image);
                 post.Image = GetImagePath(vm.Image);
-            }
-            if (vm.Document != null)
-            {
-                if (post.Document != null)
-                    RemoveDocument(post.Document);
-                post.Document = GetImagePath(vm.Document);
             }
             post.Approved = loggedUserRole[0] == Roles.Admin ? true : false;
             string message = post.Approved == true ? "Post Updated Successfully" : "Post Updated. Waiting for approval";
@@ -190,6 +184,22 @@ namespace BeReal.Areas.Admin.Controllers
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
             return View();
+        }
+        [HttpPost]
+        public async Task<IActionResult> Download(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var file = await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
+            if (file == null)
+            {
+                return NotFound();
+            }
+
+            return File(file.Data!, file.ContentType!, file.FileName);
         }
 
         [HttpPost]
@@ -224,21 +234,6 @@ namespace BeReal.Areas.Admin.Controllers
             }
             return uniqueFileName;
         }
-        private bool RemoveDocument(string document)
-        {
-            try
-            {
-                var file = Path.Combine(_documentPath, document);
-                if (System.IO.File.Exists(file))
-                    System.IO.File.Delete(file);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
         private bool RemoveImage(string image)
         {
             try
@@ -254,27 +249,21 @@ namespace BeReal.Areas.Admin.Controllers
                 return false;
             }
         }
-
-        private string GetDocPath(IFormFile formFile)
+        private async Task<Document> GetFileInfo(CreatePostViewModel vm)
         {
-            var uniqueFileName = "";
-            var folderPath = Path.Combine(_documentPath);
-            if (!Directory.Exists(folderPath))
+            List<string> suffixes = new List<string> { ".pdf",".docx",".xlsx",".csv"};
+            string suffix = vm.File!.UploadedFile!.FileName.Substring(vm.File.UploadedFile.FileName.LastIndexOf('.'));
+            if (suffixes.Contains(suffix))
             {
-                Directory.CreateDirectory(folderPath);
-            }
-            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf("."));
-            var allowed = new List<string> { ".pdf",".docx",".xlsx",".csv"};
-            if (allowed.Contains(suffix))
-            {
-                uniqueFileName = $"file_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
-                var filePath = Path.Combine(folderPath, uniqueFileName);
-                using (FileStream fileStream = System.IO.File.Create(filePath))
+                string fileName = Path.GetFileName(vm.File.UploadedFile.FileName);
+                string contentType = vm.File.UploadedFile.ContentType;
+                using (var memoryStream = new MemoryStream())
                 {
-                    formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
+                    await vm.File.UploadedFile.CopyToAsync(memoryStream);
+                    return new Document { Id = vm.File!.Id, FileName = fileName, ContentType = contentType, Data = memoryStream.ToArray() };
                 }
             }
-            return uniqueFileName;
+            return new Document { };
         }
     }
 }

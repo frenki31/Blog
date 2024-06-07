@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BeReal.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace BeReal.ViewModels
 {
@@ -14,8 +15,7 @@ namespace BeReal.ViewModels
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
         public IFormFile? Image { get; set; }
-        public string? DocumentUrl { get; set; }
-        public IFormFile? Document { get; set; }
+        public FileViewModel? File { get; set; }
         public bool Approved { get; set; }
     }
 }

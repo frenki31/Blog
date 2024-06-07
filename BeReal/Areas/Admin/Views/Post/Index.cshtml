@@ -55,6 +55,22 @@
                                     <span>Status: <b>Approved</b></span>
                                 }
                             </div>
+                            <div>
+                                @if (post.Document != null)
+                                {
+                                    <i class="fa-regular fa-file"></i>
+                                    <span>Document: <b>@post.Document.FileName</b>
+                                        <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.Id">
+                                            <input type="submit" class="btn btn-primary" value="Download"/>
+                                        </form>
+                                    </span>
+                                }
+                                else
+                                {
+                                    <i class="fa-regular fa-file"></i>
+                                    <span>Document: <b>Not Found</b></span>
+                                }
+                            </div>
                         </div>
                         <div class="col-5 text-right d-flex justify-content-center flex-column">
                             <div class="d-flex justify-content-end">

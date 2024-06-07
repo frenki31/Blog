@@ -16,5 +16,6 @@ namespace BeReal.Data
         public DbSet<Page> Pages { get; set; }  
         public DbSet<MainComment> MainComments { get; set; }
         public DbSet<SubComment> SubComments { get; set; }
+        public DbSet<Document> Files { get; set; }
     }
 }
