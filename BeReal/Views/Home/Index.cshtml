@@ -13,7 +13,9 @@
         imageUrl = "/blog/assets/img/home-bg.jpg";
     }
 }
-
+@{
+    await Html.RenderPartialAsync("_Navbar");
+}
 <!-- Page Header-->
 <header class="masthead" style="background-image: url('@imageUrl')">
     <div class="container position-relative px-4 px-lg-5">
@@ -126,5 +128,7 @@
         </div>
     </div>
 </div>
-
+@{
+    await Html.RenderPartialAsync("_Footer");
+}
 

@@ -37,11 +37,11 @@ namespace BeReal.Areas.Admin.Controllers
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin)
             {
-                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.MainComments).ToListAsync();
+                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.Comments).ToListAsync();
             }
             else
             {
-                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.MainComments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
+                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.Comments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
             }
             var pageSize = 5;
             var pageNumber = (page ?? 1);
@@ -56,7 +56,7 @@ namespace BeReal.Areas.Admin.Controllers
                 Category = x.Category,
                 Tags = x.Tags,
                 Approved = x.Approved,
-                MainComments = x.MainComments,
+                Comments = x.Comments,
                 Document = x.Document,
             }).ToList();
             return View(await postVms.OrderByDescending(x => x.publicationDate).ToPagedListAsync(pageNumber, pageSize));

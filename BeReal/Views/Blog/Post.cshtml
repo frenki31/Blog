@@ -17,6 +17,9 @@
     var authUser = new ApplicationUser();
     authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
 }
+@{
+    await Html.RenderPartialAsync("_Navbar");
+}
 <!-- Page Header-->
 <header class="masthead" style="background-image: url('@imageUrl')">
     <div class="container position-relative px-4 px-lg-5">
@@ -48,28 +51,33 @@
 <div class="d-flex justify-content-center">
     @if (User.Identity!.IsAuthenticated)
     {
-        await Html.RenderPartialAsync("_MainComment", new CommentViewModel { PostId = Model.Id, MainCommentId = 0 });
-    }
-    <div>
-        @foreach (var comment in Model.MainComments!)
+        @foreach (var comment in Model.Comments!.Where(c => c.ParentCommentId == null))
         {
-            <p>
-                @comment.Message --- @comment.Created
-            </p>
-            <h2>Sub Comments</h2>
-            <div>
-                @{
-                    await Html.RenderPartialAsync("_MainComment", new CommentViewModel { PostId = Model.Id, MainCommentId = comment.Id });
-                }
-                @foreach (var sc in comment.SubComments!)
+            <div class="comment">
+                <h5>@comment.User!.UserName</h5>
+                <p>@comment.Message</p>
+
+                @foreach (var reply in Model.Comments!.Where(c => c.ParentCommentId == comment.CommentId))
                 {
-                    <p>
-                        @sc.Message --- @sc.Created
-                    </p>
+                    <div class="reply">
+                        <h5>@reply.User!.UserName</h5>
+                        <p>@reply.Message</p>
+                    </div>
                 }
+
+                <form asp-action="Reply" method="post">
+                    <input type="hidden" name="commentId" value="@comment.CommentId" />
+                    <textarea name="content"></textarea>
+                    <button type="submit">Reply</button>
+                </form>
             </div>
         }
-    </div>
+
+
+    }
 </div>
+@{
+    await Html.RenderPartialAsync("_Footer");
+}
 
 

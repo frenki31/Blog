@@ -1,5 +1,4 @@
 ﻿using BeReal.Models;
-using BeReal.Models.Comments;
 
 namespace BeReal.ViewModels
 {
@@ -15,6 +14,6 @@ namespace BeReal.ViewModels
         public string? Image { get; set; }
         public bool Approved { get; set; }
         public Document? Document { get; set; }
-        public List<MainComment>? MainComments { get; set; }
+        public List<Comment>? Comments { get; set; }
     }
 }

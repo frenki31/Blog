@@ -9,7 +9,9 @@
     authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
     var authUserRole = await userManager.GetRolesAsync(authUser!);
 }
-
+@{
+    await Html.RenderPartialAsync("_Navbar");
+}
 <div class="container-fluid">
     <a class="btn btn-primary mb-1" asp-action="Create" asp-controller="Post">Create Post</a>
     <div class="card">
@@ -41,7 +43,7 @@
                             </div>
                             <div>
                                 <i class="fa-regular fa-comment"></i>
-                                <span>Comments: <b>@post.MainComments!.Count</b></span>
+                                <span>Comments: <b>@post.Comments!.Count</b></span>
                             </div>
                             <div>
                                 @if (post.Approved == false)
@@ -110,3 +112,6 @@
         </div>
     </div>
 </div>
+@{
+    await Html.RenderPartialAsync("_Footer");
+}

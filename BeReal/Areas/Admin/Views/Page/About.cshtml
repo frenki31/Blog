@@ -2,7 +2,9 @@
 @{
     ViewData["Title"] = "About Page";
 }
-
+@{
+    await Html.RenderPartialAsync("_Navbar");
+}
 <div class="container-fluid">
     <a class="btn btn-primary mb-1" asp-action="Index" asp-controller="Post">Back</a>
     <div class="card">
@@ -53,6 +55,9 @@
         </div>
     </div>
 </div>
+@{
+    await Html.RenderPartialAsync("_Footer");
+}
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>

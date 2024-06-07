@@ -1,6 +1,4 @@
-﻿using BeReal.Models.Comments;
-
-namespace BeReal.Models
+﻿namespace BeReal.Models
 {
     public class Post
     {
@@ -18,6 +16,6 @@ namespace BeReal.Models
         public string? Category { get; set; }
         public string? Tags { get; set; }
         public bool Approved { get; set; }
-        public List<MainComment>? MainComments { get; set; }
+        public List<Comment>? Comments { get; set; }
     }
 }

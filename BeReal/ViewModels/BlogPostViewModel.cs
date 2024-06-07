@@ -1,5 +1,4 @@
-﻿using BeReal.Models.Comments;
-
+﻿using BeReal.Models;
 namespace BeReal.ViewModels
 {
     public class BlogPostViewModel
@@ -13,6 +12,6 @@ namespace BeReal.ViewModels
         public DateTime PublicationDate { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }
-        public List<MainComment>? MainComments { get; set; }
+        public List<Comment>? Comments { get; set; }
     }
 }
