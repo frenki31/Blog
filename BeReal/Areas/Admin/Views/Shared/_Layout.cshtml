@@ -38,7 +38,7 @@
 
 </head>
 
-<body id="page-top" ds->
+<body id="page-top">
     <nav class="navbar navbar-expand-lg navbar-light position-sticky" id="mainNav">
         <div class="container px-4 px-lg-5">
             <a class="navbar-brand text-black" asp-controller="Post" asp-action="Index" asp-area="Admin">BeReal.</a>
@@ -48,67 +48,82 @@
             </button>
             <div class="collapse navbar-collapse" id="navbarResponsive">
                 <ul class="navbar-nav ms-auto py-4 py-lg-0">
-                    <li class="nav-item">
-                        <a class="nav-link px-lg-3 py-3 py-lg-4 text-black" asp-action="Index" asp-controller="Post" asp-area="Admin">
-                            <i class="fas fa-fw fa-tachometer-alt"></i>
-                            <span>Post</span>
-                        </a>
-                    </li>
-                    @if (User.IsInRole("Admin"))
+                    @if (User.Identity!.IsAuthenticated)
                     {
                         <li class="nav-item">
-                            <a class="nav-link px-lg-3 py-3 py-lg-4 text-black" asp-action="Index" asp-controller="User" asp-area="Admin">
-                                <i class="fas fa-fw fa-user"></i>
-                                <span>User</span>
+                            <a class="nav-link px-lg-3 py-3 py-lg-4 text-black" asp-action="Index" asp-controller="Post" asp-area="Admin">
+                                <i class="fas fa-fw fa-tachometer-alt"></i>
+                                <span>Post</span>
                             </a>
                         </li>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link px-lg-3 py-3 py-lg-4 text-black" asp-action="Index" asp-controller="User" asp-area="Admin">
+                                    <i class="fas fa-fw fa-user"></i>
+                                    <span>User</span>
+                                </a>
+                            </li>
+                            <li class="nav-item dropdown no-arrow">
+                                <a class="nav-link dropdown-toggle px-lg-3 py-3 py-lg-4 text-black" href="#" id="pagesDropdown" role="button"
+                                   data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-fw fa-file"></i>
+                                    <span>Pages</span>
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="pagesDropdown">
+                                    <a class="dropdown-item" asp-action="Index" asp-controller="Page" asp-area="Admin">
+                                        <i class="fa fa-gear fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Home
+                                    </a>
+                                    <a class="dropdown-item" asp-action="About" asp-controller="Page" asp-area="Admin">
+                                        <i class="fa fa-question-circle fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        About
+                                    </a>
+                                    <a class="dropdown-item" asp-action="Contact" asp-controller="Page" asp-area="Admin">
+                                        <i class="fa fa-phone fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Contact
+                                    </a>
+                                    <a class="dropdown-item" asp-action="Privacy" asp-controller="Page" asp-area="Admin">
+                                        <i class="fa fa-user-secret fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Privacy Policy
+                                    </a>
+                                </div>
+                            </li>
+                        }
                         <li class="nav-item dropdown no-arrow">
-                            <a class="nav-link dropdown-toggle px-lg-3 py-3 py-lg-4 text-black" href="#" id="pagesDropdown" role="button"
-                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <i class="fas fa-fw fa-file"></i>
-                                <span>Pages</span>
+                            <a class="nav-link dropdown-toggle px-lg-3 py-3 py-lg-4 text-black" href="#" id="userDropdown" role="button"
+                               data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span>@authUser?.FirstName @authUser?.LastName</span>
                             </a>
-                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in" aria-labelledby="pagesDropdown">
-                                <a class="dropdown-item" asp-action="Index" asp-controller="Page" asp-area="Admin">
-                                    <i class="fa fa-gear fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Home
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                 aria-labelledby="userDropdown">
+                                <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">
+                                    <i class="fas fa-home fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    Main
                                 </a>
-                                <a class="dropdown-item" asp-action="About" asp-controller="Page" asp-area="Admin">
-                                    <i class="fa fa-question-circle fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    About
+                                <a class="dropdown-item" asp-action="EditProfile" asp-controller="User" asp-area="Admin" asp-route-id="@authUser?.Id">
+                                    <i class="fa-regular fa-user"></i>
+                                    Edit Profile
                                 </a>
-                                <a class="dropdown-item" asp-action="Contact" asp-controller="Page" asp-area="Admin">
-                                    <i class="fa fa-phone fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Contact
+                                <a class="dropdown-item" asp-action="ResetUserPassword" asp-controller="User" asp-area="Admin" asp-route-id="@authUser?.Id">
+                                    <i class="fa-regular fa-user"></i>
+                                    Change Pass
                                 </a>
-                                <a class="dropdown-item" asp-action="Privacy" asp-controller="Page" asp-area="Admin">
-                                    <i class="fa fa-user-secret fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Privacy Policy
+                                <a class="dropdown-item" asp-action="Profile" asp-controller="User" asp-area="Admin" asp-route-id="@authUser?.Id">
+                                    <i class="fa-regular fa-user"></i>
+                                    Profile
                                 </a>
+                                <div class="dropdown-divider"></div>
+                                <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post" onsubmit="return confirm('Do you want to logout?');">
+                                    <button type="submit" class="dropdown-item">
+                                        <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                        Logout
+                                    </button>
+                                </form>
                             </div>
                         </li>
                     }
-                    <li class="nav-item dropdown no-arrow">
-                        <a class="nav-link dropdown-toggle px-lg-3 py-3 py-lg-4 text-black" href="#" id="userDropdown" role="button"
-                           data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <span>@authUser?.FirstName @authUser?.LastName</span>
-                        </a>
-                        <!-- Dropdown - User Information -->
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
-                             aria-labelledby="userDropdown">
-                            <a class="dropdown-item" asp-action="Index" asp-controller="Home" asp-area="">
-                                <i class="fas fa-home fa-sm fa-fw mr-2 text-gray-400"></i>
-                                Main
-                            </a>
-                            <div class="dropdown-divider"></div>
-                            <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </button>
-                            </form>
-                        </div>
-                    </li>
                 </ul>
             </div>
         </div>
@@ -116,15 +131,18 @@
     <!-- End of Topbar -->
         @RenderBody()
     <!-- Footer -->
-    <footer class="border-top">
-        <div class="container px-4 px-lg-5">
-            <div class="row gx-4 gx-lg-5 justify-content-center">
-                <div class="col-md-10 col-lg-8 col-xl-7">
-                    <div class="small text-center text-muted fst-italic">Copyright &copy; BeReal. 2024</div>
+    @if (User.Identity.IsAuthenticated)
+    {
+        <footer class="border-top">
+            <div class="container px-4 px-lg-5">
+                <div class="row gx-4 gx-lg-5 justify-content-center">
+                    <div class="col-md-10 col-lg-8 col-xl-7">
+                        <div class="small text-center text-muted fst-italic">Copyright &copy; BeReal. 2024</div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </footer>
+        </footer>
+    }
     <!-- End of Footer -->
     <!-- Scroll to Top Button-->
     

@@ -72,9 +72,13 @@ namespace BeReal.Areas.Admin.Controllers
             if (!ModelState.IsValid) { return View(model); }
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
-            var file = await GetFileInfo(model);
-            await _context.Files.AddAsync(file);
-            await _context.SaveChangesAsync();
+            Document? file = null;
+            if (model.File != null)
+            {
+                file = await GetFileInfo(model);
+                await _context.Files.AddAsync(file);
+                await _context.SaveChangesAsync();
+            }
             var post = new Post
             {
                 Title = model.Title,
@@ -120,6 +124,7 @@ namespace BeReal.Areas.Admin.Controllers
                 _notification.Error("Post not found");
                 return View();
             }
+            
             var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
             var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
             if (loggedUserRole[0] != Roles.Admin && loggedUser!.Id != post.User!.Id)
@@ -136,8 +141,11 @@ namespace BeReal.Areas.Admin.Controllers
                 Category = post.Category,
                 Tags = post.Tags,
                 Approved = post.Approved,
-                File = new FileViewModel { Id = post.Document!.Id, ContentType = post.Document.ContentType, Name = post.Document.FileName },
             };
+            if (post.Document != null)
+            {
+                edit.File = new FileViewModel { Id = post.Document!.Id, ContentType = post.Document.ContentType, Name = post.Document.FileName };
+            }
             return View(edit);
         }
         [HttpPost]
@@ -157,7 +165,7 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
-            post.Document = await GetFileInfo(vm);
+            post.Document = vm.File != null ? await GetFileInfo(vm) : null;
             if (vm.Image != null)
             {
                 if (post.Image != null) 
@@ -192,13 +200,11 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-
             var file = await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
             if (file == null)
             {
                 return NotFound();
             }
-
             return File(file.Data!, file.ContentType!, file.FileName);
         }
 

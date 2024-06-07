@@ -5,7 +5,6 @@ using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using X.PagedList;
 
 namespace BeReal.Controllers
 {

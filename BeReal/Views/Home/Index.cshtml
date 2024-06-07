@@ -62,9 +62,15 @@
                             </a>
                             <p class="post-meta">
                                 Posted by
-                                <a href="#!">@post.Author</a>
+                                <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.User!.Id">@post.Author</a>
                                 on @post.publicationDate.ToShortDateString()
                             </p>
+                            @if (post.Document != null)
+                            {
+                                <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.Id">
+                                    <input type="submit" class="btn btn-primary" value="Download" />
+                                </form>
+                            }
                         </div>
                         <div class="col-5 d-flex justify-content-end flex-column">
                             @{
@@ -73,6 +79,7 @@
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
                                 <img class="img-fluid" src="~/images/@Image" style="object-fit:cover; height:100%; width:100%" />
                             </a>
+                            
                         </div>
                     </div>
                     

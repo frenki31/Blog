@@ -6,6 +6,9 @@ using BeReal.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
+using System.Runtime.Intrinsics.Arm;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using BeReal.Data;
 
 namespace BeReal.Areas.Admin.Controllers
 {
@@ -14,15 +17,17 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ApplicationDbContext _context;
         public INotyfService _notification { get; }
 
-        public UserController(SignInManager<ApplicationUser> signInManager,
+        public UserController(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager,
             UserManager<ApplicationUser> userManager, 
             INotyfService notification)
         {
             _notification = notification;
             _signInManager = signInManager;
             _userManager = userManager;
+            _context = context;
         }
         [Authorize(Roles = "Admin")]
         [HttpGet]
@@ -43,6 +48,8 @@ namespace BeReal.Areas.Admin.Controllers
                 var oneUser = await _userManager.FindByIdAsync(user.Id!);
                 var role = await _userManager.GetRolesAsync(oneUser!);
                 user.Role = role.FirstOrDefault();
+                var postCount = _context.Posts.Where(x => x.User!.Id == oneUser!.Id).Count();
+                user.NumberPosts = postCount;
             }
             return View(userViewModel);
         }
@@ -245,6 +252,117 @@ namespace BeReal.Areas.Admin.Controllers
             return RedirectToAction("Index", "User", new { area = "Admin" });
         }
 
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            if (user == null)
+            {
+                _notification.Error("User does not exist");
+                return View();
+            }
+            var userVM = new ProfileViewModel
+            {
+                Email = user.Email,
+                FirstName = user.FirstName,
+                LastName = user.LastName,
+                Username = user.UserName,
+            };
+            return View(userVM);
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> EditProfile(ProfileViewModel rvm)
+        {
+            var oldUser = await _userManager.FindByNameAsync(rvm.Username!);
+            if (!ModelState.IsValid)
+            {
+                _notification.Warning("Please fill in all the fields");
+                return View(rvm);
+            }
+            if (oldUser!.Email != rvm.Email)
+            {
+                var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
+                if (checkEmail != null)
+                {
+                    _notification.Error("This email is already registered.");
+                    return View(rvm);
+                }
+            }
+            if (oldUser.UserName != rvm.Username)
+            {
+                var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
+                if (checkUsername != null)
+                {
+                    _notification.Error("This username is not available.");
+                    return View(rvm);
+                }
+            }
+            var confirmPassword = await _userManager.CheckPasswordAsync(oldUser!, rvm.Password!);
+            if (!confirmPassword)
+            {
+                _notification.Error("Password is not correct");
+                return View(rvm);
+            }
+            oldUser.FirstName = rvm.FirstName;
+            oldUser.LastName = rvm.LastName;
+            oldUser.UserName = rvm.Username;
+            oldUser.Email = rvm.Email;
+            var checkUser = await _userManager.UpdateAsync(oldUser);   
+            if (checkUser.Succeeded)
+            {
+                _notification.Success("User profile updated successfully!");
+                return RedirectToAction("Index", "Post", new { area = "Admin" });
+            }
+            return View(rvm);
+        }
+
+        [Authorize]
+        [HttpGet]
+        public async Task<IActionResult> ResetUserPassword(string id)
+        {
+            var thisUser = await _userManager.FindByIdAsync(id);
+            if (thisUser == null)
+            {
+                _notification.Error("User does not exist");
+                return View();
+            }
+            var resetVm = new ResetPasswordViewModel()
+            {
+                Id = thisUser.Id,
+                Username = thisUser.UserName,
+            };
+            return View(resetVm);
+        }
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> ResetUserPassword(ResetPasswordViewModel rpvm)
+        {
+            if (!ModelState.IsValid) { return View(rpvm); }
+            var thisUser = await _userManager.FindByIdAsync(rpvm.Id!);
+            if (thisUser == null)
+            {
+                _notification.Error("User does not exist");
+                return View(rpvm);
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(thisUser);
+            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword!);
+            if (reset.Succeeded)
+            {
+                _notification.Success("Password changed successfully");
+                return RedirectToAction(nameof(Index));
+            }
+            return View(rpvm);
+        }
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> DeleteAccount(string id)
+        {
+            var user = await _userManager.FindByIdAsync(id);
+            await _userManager.DeleteAsync(user!);
+            return RedirectToAction(nameof(Index),"Home", new { area = ""});
+        }
         [HttpGet("AccessDenied")]
         [Authorize]
         public IActionResult AccessDenied()

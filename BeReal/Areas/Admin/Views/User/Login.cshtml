@@ -1,6 +1,5 @@
 ﻿@model BeReal.ViewModels.LoginViewModel
 @{
-    Layout = "_LoginLayout";
     ViewData["Title"] = "Login";
 } 
 <!-- Outer Row -->
@@ -12,23 +11,23 @@
             <div class="card-body p-0">
                 <!-- Nested Row within Card Body -->
                 <div class="row">
-                    <div class="col-lg-6 d-none d-lg-block bg-login-image"></div>
+                    <div class="col-lg-6 d-none d-lg-block" style="background-image: url('/images/img_04-06-2024-16-21-59.jpg')"></div>
                     <div class="col-lg-6">
                         <div class="p-5">
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                             </div>
                             <form class="user" method="post" asp-action="Login">
-                                <div class="form-group">
+                                <div class="form-group row mb-2">
                                     <input asp-for="Username" type="text" class="form-control form-control-user"
                                            id="exampleInputUsername" aria-describedby="UsernameHelp"
                                            placeholder="Enter Username...">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group row mb-2">
                                     <input asp-for="Password" type="password" class="form-control form-control-user"
                                            id="exampleInputPassword" placeholder="Password">
                                 </div>
-                                <div class="form-group">
+                                <div class="form-group row mb-2">
                                     <div class="custom-control custom-checkbox small">
                                         <input asp-for="RememberMe" type="checkbox" class="custom-control-input" id="customCheck">
                                         <label class="custom-control-label" for="customCheck">
@@ -37,7 +36,9 @@
                                         </label>
                                     </div>
                                 </div>
-                                <input type="submit" class="btn btn-primary btn-user btn-block" value="Login"/>
+                                <div class="form-group row mb-2">
+                                    <input type="submit" class="btn btn-primary btn-block" value="Login" />
+                                </div>
                             </form>
                             <hr>
                             <div class="text-center">

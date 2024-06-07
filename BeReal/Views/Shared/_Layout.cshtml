@@ -42,10 +42,6 @@
                         @if (User.Identity!.IsAuthenticated)
                         {
                             <li class="nav-item"><a class="nav-link px-lg-3 py-3 py-lg-4" asp-controller="Post" asp-action="Index" asp-area="Admin">@User.Identity.Name</a></li>
-                            <li class="nav-item">
-                                <a class="nav-link px-lg-3 py-3 py-lg-4" onclick="$('#logoutForm').submit();" style="cursor:pointer;">Logout</a>
-                                <form id="logoutForm" asp-controller="User" asp-action="Logout" asp-area="Admin" method="post"></form>
-                            </li>
                         }
                         else
                         {

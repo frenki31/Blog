@@ -27,7 +27,7 @@
                     <h2 class="subheading">@Model.ShortDescription</h2>
                     <span class="meta">
                         Posted by
-                        <a href="#!">@Model.Author</a>
+                        <a asp-action="Profile" asp-controller="Home" asp-route-name="">@Model.Author</a>
                         on @Model.PublicationDate.ToShortDateString()
                     </span>
                 </div>
