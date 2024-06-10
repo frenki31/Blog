@@ -1,11 +1,13 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
 using BeReal.Data;
 using BeReal.Models;
+using BeReal.Utilities;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Hosting;
 
 namespace BeReal.Controllers
 {
@@ -29,7 +31,11 @@ namespace BeReal.Controllers
                 _notification.Error("Post not found");
                 return View();
             }
-            var post = await _context.Posts.Include(p => p.Comments)!
+            var post = await _context.Posts.Include(p => p.Comments!)
+                                                .ThenInclude(comment => comment.User)
+                                           .Include(x => x.Comments!)
+                                                .ThenInclude(comment => comment.Replies!)
+                                           .Include(p => p.User)
                                            .FirstOrDefaultAsync(x => x.Slug == slug);
             if (post == null)
             {
@@ -38,112 +44,66 @@ namespace BeReal.Controllers
             }
             var vm = new BlogPostViewModel()
             {
-                Id = post.Id,
-                Author = post.Author,
-                Description = post.Description,
-                PublicationDate = post.publicationDate,
-                ShortDescription = post.ShortDescription!,
-                Title = post.Title,
-                ImageUrl = post.Image,
-                Tags = post.Tags,
-                Category = post.Category,
-                Comments = post.Comments,
+                Post = post,
+                ReturnUrl = Url.Action("Post", new { slug })
             };
             return View(vm);
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Comment(int postId, string content)
+        public async Task<IActionResult> Comment(BlogPostViewModel vm)
         {
-            // Get the current user
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            if (vm.Post is null || vm.Comment is null)
             {
-                return Unauthorized();
+                return RedirectToAction("Index", "Home");
             }
-            // Get the post
-            var post = await _context.Posts.FindAsync(postId);
+
+            var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == vm.Post.Id);
             if (post == null)
             {
                 return NotFound();
             }
-            // Create a new comment
-            var comment = new Comment
+
+            var comment = vm.Comment;
+            comment.User = await _userManager.GetUserAsync(User);
+            comment.Post = post;
+            comment.Created = DateTime.Now;
+
+            if (comment.ParentComment != null)
             {
-                Message = content,
-                PostId = postId,
-                UserId = user.Id
-            };
-            // Add the comment to the context and save changes
+                var ParComment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == comment.ParentComment.Id);
+                if (ParComment != null)
+                {
+                    comment.ParentComment = ParComment;
+                }
+            }
+
             _context.Comments.Add(comment);
             await _context.SaveChangesAsync();
 
-            return RedirectToAction("Details", new { id = postId });
+            return RedirectToAction("Post", new { slug = post.Slug });
         }
+
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Reply(int commentId, string content)
+        public async Task<IActionResult> DeleteComment(int id, string slug)
         {
-            // Get the current user
-            var user = await _userManager.GetUserAsync(User);
-            if (user == null)
+            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Slug == slug);
+            var Comment = await _context.Comments.Include(c => c.Replies).FirstOrDefaultAsync(comment => comment.Id == id);
+            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
+            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == Comment!.User!.Id)
             {
-                return Unauthorized();
-            }
-
-            // Get the comment
-            var parentComment = await _context.Comments.FindAsync(commentId);
-            if (parentComment == null)
-            {
-                return NotFound();
-            }
-
-            // Create a new comment
-            var reply = new Comment
-            {
-                Message = content,
-                PostId = parentComment.PostId,
-                UserId = user.Id,
-                ParentCommentId = commentId
-            };
-
-            // Add the reply to the context and save changes
-            _context.Comments.Add(reply);
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction("Details", new { id = parentComment.PostId });
-        }
-
-        /*[HttpPost]
-        [Authorize]
-        public async Task<IActionResult> Comment(CommentViewModel vm)
-        {
-            if (!ModelState.IsValid) { return RedirectToAction("Index", "Home"); }
-            var post = await _context.Posts
-                                     .Include(p => p.Comments)!
-                                     .FirstOrDefaultAsync(x => x.Id == vm.PostId);
-            if (vm.MainCommentId == 0)
-            {
-                post!.Comments = post.Comments ?? new List<Comment>();
-                post.Comments.Add(new Comment
+                if (Comment!.Replies != null)
                 {
-                    Message = vm.Message,
-                    Created = DateTime.Now,
-                });
-                _context.Posts.Update(post);
+                    _context.Comments.RemoveRange(Comment.Replies);
+                }
+                _context.Comments.Remove(Comment!);
+                await _context.SaveChangesAsync();
+                _notification.Success("Comment deleted successfully");
+                return RedirectToAction("Post", new { slug = post!.Slug });
             }
-            else
-            {
-                var comment = new Comment()
-                {
-                    MainCommentId = vm.MainCommentId,
-                    Message = vm.Message,
-                    Created = DateTime.Now,
-                };
-                _context.Comments.Add(comment);
-            }
-            await _context.SaveChangesAsync();
-            return RedirectToAction("Post", new { slug = post!.Slug });
-        }*/
+            return View();
+        }            
     }
 }

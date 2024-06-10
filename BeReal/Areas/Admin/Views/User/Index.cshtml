@@ -23,11 +23,12 @@
                         <th>Email</th>
                         <th>Role</th>
                         <th>Posts</th>
+                        <th>Comments</th>
                         <th>Change</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var user in Model)
+                    @foreach (var user in Model.Where(u => u.Username != User.Identity!.Name))
                     {
                         <tr>
                             <td>@user.FirstName</td>
@@ -36,6 +37,7 @@
                             <td>@user.Email</td>
                             <td>@user.Role</td>
                             <td>@user.NumberPosts</td>
+                            <td>@user.NumberComments</td>
                             <td class="d-flex justify-content-start align-items-center">
                                 <a class="btn btn-primary" asp-action="ResetPassword" asp-controller="User" asp-route-id="@user.Id">Password</a> | 
                                 <form asp-action="ChangeRole" asp-controller="User" asp-route-id="@user.Id" method="post">

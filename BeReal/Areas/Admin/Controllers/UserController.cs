@@ -6,8 +6,6 @@ using BeReal.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
-using System.Runtime.Intrinsics.Arm;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using BeReal.Data;
 
 namespace BeReal.Areas.Admin.Controllers
@@ -49,16 +47,22 @@ namespace BeReal.Areas.Admin.Controllers
                 var role = await _userManager.GetRolesAsync(oneUser!);
                 user.Role = role.FirstOrDefault();
                 var postCount = _context.Posts.Where(x => x.User!.Id == oneUser!.Id).Count();
+                var commentCount = _context.Comments.Where(x => x.User!.Id != oneUser!.Id).Count();
                 user.NumberPosts = postCount;
+                user.NumberComments = commentCount;
             }
             return View(userViewModel);
         }
         [HttpGet("Login")]
-        public IActionResult Login()
+        public IActionResult Login(string url)
         {
             if (!HttpContext.User.Identity!.IsAuthenticated)
             {
-                return View(new LoginViewModel());
+                var login = new LoginViewModel()
+                {
+                    ReturnUrl = url
+                };
+                return View(login);
             }
             return RedirectToAction(nameof(Index), "Post", new { area = "Admin" });
         }
@@ -83,7 +87,13 @@ namespace BeReal.Areas.Admin.Controllers
             }
             await _signInManager.PasswordSignInAsync(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
-            return RedirectToAction(nameof(Index), "Post", new {area = "Admin"});
+            if (lvm.ReturnUrl == null)
+            {
+                return RedirectToAction(nameof(Index), "Home", new {area = ""});
+            }else
+            {
+                return Redirect(lvm.ReturnUrl);
+            }
         }
         [HttpPost]
         public IActionResult Logout()
@@ -351,18 +361,11 @@ namespace BeReal.Areas.Admin.Controllers
             if (reset.Succeeded)
             {
                 _notification.Success("Password changed successfully");
-                return RedirectToAction(nameof(Index));
+                return RedirectToAction("Profile", "Home", new { area = ""});
             }
             return View(rpvm);
         }
-        [Authorize]
-        [HttpPost]
-        public async Task<IActionResult> DeleteAccount(string id)
-        {
-            var user = await _userManager.FindByIdAsync(id);
-            await _userManager.DeleteAsync(user!);
-            return RedirectToAction(nameof(Index),"Home", new { area = ""});
-        }
+
         [HttpGet("AccessDenied")]
         [Authorize]
         public IActionResult AccessDenied()

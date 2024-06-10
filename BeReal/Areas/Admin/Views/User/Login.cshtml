@@ -14,10 +14,15 @@
                     <div class="col-lg-6 d-none d-lg-block" style="background-image: url('/images/img_04-06-2024-16-21-59.jpg')"></div>
                     <div class="col-lg-6">
                         <div class="p-5">
+                            <div class="text-start">
+                                <a asp-action="Index" asp-controller="Home" asp-area=""><i class="fa-solid fa-arrow-left"></i></a>
+                            </div>
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                             </div>
-                            <form class="user" method="post" asp-action="Login">
+                            <form class="user" method="post" asp-action="Login" asp-route-url="@Model.ReturnUrl">
+                                <input asp-for="@Model.ReturnUrl" hidden />
+
                                 <div class="form-group row mb-2">
                                     <input asp-for="Username" type="text" class="form-control form-control-user"
                                            id="exampleInputUsername" aria-describedby="UsernameHelp"

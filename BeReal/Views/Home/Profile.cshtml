@@ -6,45 +6,64 @@
     var authUser = new ApplicationUser();
     authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
 }
-<div class="container">
-    <div class="card o-hidden border-0 shadow-lg my-5">
-        <div class="card-body p-0">
-            <!-- Nested Row within Card Body -->
-            <div class="row">
-                <div class="col-lg-5 d-none d-lg-block" style="background-image: url('/images/img_04-06-2024-16-21-59.jpg')"></div>
-                <div class="col-lg-7">
-                    <div class="p-5">
-                        <div class="card text-center">
-                            <div class="card-header">
-                                User Profile
-                            </div>
-                            <div class="card-body">
-                                <h5 class="card-title">@Model.FirstName @Model.LastName</h5>
-                                <p class="card-text">This user goes by the name <b>@Model.Username</b> and has posted <b>@Model.NumberPosts</b> times.</p>
-                                @if (User.Identity!.IsAuthenticated)
-                                {
-                                    @if (authUser!.UserName == Model.Username)
-                                    {
-                                        <p class="card-text">Email: <b>@Model.Email</b></p>
-                                        <p class="card-text">Role: <b>@Model.Role</b></p>
-                                    }
-                                }
-                            </div>
-                            <div class="card-footer text-muted">
-                                @if (User.Identity!.IsAuthenticated)
-                                {
-                                    @if (authUser!.UserName == Model.Username)
-                                    {
-                                        <a asp-action="EditProfile" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-primary">Edit Profile</a>
-                                        <a asp-action="ResetUserPassword" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
-                                    }
-                                }
-                            </div>
-                        </div>
-                    </div>
+@{
+    await Html.RenderPartialAsync("_Navbar");
+}
+<!-- Page Header-->
+<header class="masthead" style="background-image: url('/blog/assets/img/post-sample-image.jpg')">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <div class="post-heading">
+                    <h1>@Model.FirstName @Model.LastName</h1>
+                    @if (User.Identity!.IsAuthenticated)
+                    {
+                        @if (authUser!.UserName == Model.Username)
+                        {
+                            <a asp-action="EditProfile" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-primary">Edit Profile</a>
+                            <a asp-action="ResetUserPassword" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
+                        }
+                    }
                 </div>
             </div>
         </div>
     </div>
-</div>
+</header>
+<main class="mb-4">
+    <div class="container px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <h3>User Profile</h3>
+                <div class="row align-content-center">
+                    @foreach (var post in Model.Posts!)
+                    {
+                        <div class="col-lg-4 col-md-3 mb-4">
+                            <div class="card border-0 shadow">
+                                @{
+                                    string Image = post.Image == null ? "default_image.png" : post.Image;
+                                }
+                                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
+                                    <img class="card-img-top" src="~/images/@Image" style="object-fit:cover; height:100%; width:100%" />
+                                </a>
+                                <div class="card-body">
+                                    <div class="row text-center" style="margin: 0px auto 10px 0px">
+                                        <h5 class="card-title text-center w-100"><a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">@post.Title</a></h5>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+@{
+    await Html.RenderPartialAsync("_Footer");
+}
+
+
+
+
+
 

@@ -1,4 +1,5 @@
-﻿namespace BeReal.ViewModels
+﻿using BeReal.Models;
+namespace BeReal.ViewModels
 {
     public class UserViewModel
     {
@@ -9,5 +10,7 @@
         public string? Email { get; set; }
         public string? Role { get; set; }
         public int? NumberPosts { get; set; }
+        public int? NumberComments { get; set; }
+        public List<Post>? Posts { get; set; }
     }
 }

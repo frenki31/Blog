@@ -24,6 +24,11 @@
                 <div class="site-heading">
                     <h1>@Model.Title</h1>
                     <span class="subheading">@Model.ShortDescription</span>
+                    <form asp-controller="Home" asp-action="Index" class="form-horizontal">
+                        <div class="input-group mb-3">
+                            <input asp-for="Search" type="text" placeholder="Search for a post..." class="form-control" />
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -32,26 +37,24 @@
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
         <div class="col-md-10 col-lg-8 col-xl-7 ">
-                <form asp-controller="Home" asp-action="Index" class="form-horizontal">
-                    <div class="input-group mb-3">
-                        <input asp-for="Search" type="text" placeholder="Search for a post..." class="form-control"/>
-                    </div>
-                </form>
-            <form asp-controller="Home" asp-action="Index" class="form-horizontal">
+            <form asp-controller="Home" asp-action="Index" class="form-horizontal m-auto">
                 <div class="input-group input-group-sm">
-                    <input asp-for="StartDate" class="date-picker form-control" placeholder="Start date" />
+                    <input asp-for="StartDate" class="date-picker form-control" placeholder="Start date"/>
+                    <span class="input-group-text bg-secondary text-white">to</span>
                     <input asp-for="EndDate" class="date-picker form-control" placeholder="End date" />
-                    <div class="input-group-append">
-                        <button type="submit" class="btn btn-outline-secondary">Search</button>
+                    <div class="input-group-inline">
+                        <button type="submit" class="btn btn-outline-secondary">
+                            Search
+                        </button>
                     </div>
                 </div>
             </form>
-            <form asp-controller="Home" asp-action="Index">
-                <input type="submit" value="All" class="btn btn-default"/>
-                <input type="submit" value="Programming" class="btn btn-default"/>
-                <input type="submit" value="Travel" class="btn btn-default" />
-                <input type="submit" value="Sports" class="btn btn-default" />
-                <input type="submit" value="Lifestyle" class="btn btn-default" />
+            <form asp-controller="Home" asp-action="Index" class="justify-content-center align-content-center">
+                <input asp-route-catergory="" type="submit" value="All" class="btn btn-default" />
+                <input asp-route-category="Programming" type="submit" value="Programming" class="btn btn-default" />
+                <input asp-route-category="Travel" type="submit" value="Travel" class="btn btn-default" />
+                <input asp-route-category="Sports" type="submit" value="Sports" class="btn btn-default" />
+                <input asp-route-category="Lifestyle" type="submit" value="Lifestyle" class="btn btn-default" />
             </form>
             @foreach (var post in Model.Posts!)
             {
@@ -67,6 +70,8 @@
                                 <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.User!.Id">@post.Author</a>
                                 on @post.publicationDate.ToShortDateString()
                             </p>
+                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">Read More...</a>
+
                             @if (post.Document != null)
                             {
                                 <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.Id">
@@ -112,7 +117,7 @@
                             string active = page == Model.PageNumber ? "active" : "";
                             <li class="page-item @active">
                                 <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                                   asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(page)">@(page)</a>
+                                   asp-route-start="@Model.StartDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-end="@Model.EndDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-page="@(page)">@(page)</a>
                             </li>
                         }
                     }

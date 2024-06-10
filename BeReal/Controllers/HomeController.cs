@@ -29,28 +29,27 @@ namespace BeReal.Controllers
             //create a query
             var query = _context.Posts.AsQueryable();
             //order all approved posts by date desc
-            query = query.Include(x => x.User).Include(x => x.Document).OrderByDescending(x => x.publicationDate).Where(x => x.Approved == true);
+            query = query.Include(x => x.User)
+                         .Include(x => x.Document)
+                         .OrderByDescending(x => x.publicationDate)
+                         .Where(x => x.Approved == true);
             //filter by category
             query = string.IsNullOrEmpty(category) ? query : query.Where(post => post.Category!.ToLower().Equals(category.ToLower()));
             //filter by searchword
             query = string.IsNullOrEmpty(search) ? query : query.Where(x => x.Title!.Contains(search) || x.Author!.Contains(search) ||
                                                                        x.ShortDescription!.Contains(search) || x.Description!.Contains(search));
             //filter by date
-            if (startDate != DateTime.MinValue && endDate != DateTime.MinValue && startDate < endDate)
+            if (startDate > DateTime.MinValue && endDate > DateTime.MinValue && startDate < endDate)
             {
                 query = query.Where(x => x.publicationDate >= startDate && x.publicationDate <= endDate);
             }
-            else if (startDate != DateTime.MinValue && endDate == DateTime.MinValue)
+            else if (startDate > DateTime.MinValue && endDate == DateTime.MinValue)
             {
                 query = query.Where(x => x.publicationDate >= startDate);
             }
-            else if (endDate != DateTime.MinValue && startDate == DateTime.MinValue)
+            else if (endDate > DateTime.MinValue && startDate == DateTime.MinValue)
             {
                 query = query.Where(x => x.publicationDate <= endDate);
-            }
-            else if (startDate == endDate && endDate != DateTime.MinValue && startDate != DateTime.MinValue)
-            {
-                query = query.Where(x => x.publicationDate == startDate);
             }
 
             int postCount = query.Count();
@@ -116,7 +115,8 @@ namespace BeReal.Controllers
         {
             var user = await _userManager.FindByIdAsync(id);
             var userRole = await _userManager.GetRolesAsync(user!);
-            var postCount = _context.Posts.Where(x => x.User!.Id == user!.Id).Count();
+            var posts = _context.Posts.Where(x => x.User!.Id == user!.Id).ToList();
+            var postCount = posts.Count();
             if (user == null)
             {
                 _notification.Error("User does not exist");
@@ -130,6 +130,7 @@ namespace BeReal.Controllers
                 Username = user.UserName,
                 Role = userRole[0],
                 NumberPosts = postCount,
+                Posts = posts,
             };
             return View(userVM);
         }
