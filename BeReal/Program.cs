@@ -1,6 +1,7 @@
 using AspNetCoreHero.ToastNotification;
 using AspNetCoreHero.ToastNotification.Extensions;
 using BeReal.Data;
+using BeReal.Data.Repository;
 using BeReal.Models;
 using BeReal.Utilities;
 using Microsoft.AspNetCore.Identity;
@@ -16,6 +17,9 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
+
+builder.Services.AddTransient<IRepository, Repository>();
+builder.Services.AddTransient<IFileManager, FileManager>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {

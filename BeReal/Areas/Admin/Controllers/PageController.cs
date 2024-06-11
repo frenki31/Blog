@@ -1,6 +1,6 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
 using BeReal.Data;
-using BeReal.Models;
+using BeReal.Data.Repository;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -12,21 +12,19 @@ namespace BeReal.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     public class PageController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly string _imagePath;
+        private readonly IRepository _repo;
+        private readonly IFileManager _fileManager;
         public INotyfService _notification { get; }
-        public PageController(ApplicationDbContext context,
-            IConfiguration config,
-            INotyfService notification)
+        public PageController(INotyfService notification, IRepository repo, IFileManager fileManager)
         {
-            _context = context;
-            _imagePath = config["Path:Images"]!;   
+            _repo = repo;
             _notification = notification;
+            _fileManager = fileManager;
         }
         [HttpGet]
         public async Task<IActionResult> About()
         {
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "about");
+            var page = await _repo.getPage("about");
             var pageVm = new PageViewModel()
             {
                 Id = page!.Id,
@@ -41,7 +39,7 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> About(PageViewModel vm)
         {
             if (!ModelState.IsValid) { return View(vm); }
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "about");
+            var page = await _repo.getPage("about");
             if (page == null)
             {
                 _notification.Error("Page not found");
@@ -53,10 +51,10 @@ namespace BeReal.Areas.Admin.Controllers
             if (vm.Image != null)
             {
                 if (page.ImageUrl != null)
-                    RemoveImage(page.ImageUrl);
-                page.ImageUrl = GetImagePath(vm.Image);
+                    _fileManager.RemoveImage(page.ImageUrl);
+                page.ImageUrl = _fileManager.GetImagePath(vm.Image);
             }
-            await _context.SaveChangesAsync();
+            await _repo.saveChanges();
             _notification.Success("About Page Updated Successfully");
             return RedirectToAction("Index", "Post", new { area = "Admin" });
 
@@ -64,7 +62,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Contact()
         {
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "contact");
+            var page = await _repo.getPage("contact");
             var pageVm = new PageViewModel()
             {
                 Id = page!.Id,
@@ -79,7 +77,7 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Contact(PageViewModel vm)
         {
             if (!ModelState.IsValid) { return View(vm); }
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "contact");
+            var page = await _repo.getPage("contact");
             if (page == null)
             {
                 _notification.Error("Page not found");
@@ -91,10 +89,10 @@ namespace BeReal.Areas.Admin.Controllers
             if (vm.Image != null)
             {
                 if (page.ImageUrl != null)
-                    RemoveImage(page.ImageUrl);
-                page.ImageUrl = GetImagePath(vm.Image);
+                    _fileManager.RemoveImage(page.ImageUrl);
+                page.ImageUrl = _fileManager.GetImagePath(vm.Image);
             }
-            await _context.SaveChangesAsync();
+            await _repo.saveChanges();
             _notification.Success("Contact Page Updated Successfully");
             return RedirectToAction("Index", "Post", new { area = "Admin" });
 
@@ -102,7 +100,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Privacy()
         {
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "privacy");
+            var page = await _repo.getPage("privacy");
             var pageVm = new PageViewModel()
             {
                 Id = page!.Id,
@@ -117,7 +115,7 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Privacy(PageViewModel vm)
         {
             if (!ModelState.IsValid) { return View(vm); }
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "privacy");
+            var page = await _repo.getPage("privacy");
             if (page == null)
             {
                 _notification.Error("Page not found");
@@ -129,10 +127,10 @@ namespace BeReal.Areas.Admin.Controllers
             if (vm.Image != null)
             {
                 if (page.ImageUrl != null) 
-                    RemoveImage(page.ImageUrl);
-                page.ImageUrl = GetImagePath(vm.Image);
+                    _fileManager.RemoveImage(page.ImageUrl);
+                page.ImageUrl = _fileManager.GetImagePath(vm.Image);
             }
-            await _context.SaveChangesAsync();
+            await _repo.saveChanges();
             _notification.Success("Privacy Page Updated Successfully");
             return RedirectToAction("Index", "Post", new { area = "Admin" });
 
@@ -140,7 +138,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
+            var page = await _repo.getPage("home");
             var vm = new PageViewModel()
             {
                 Id = page!.Id,
@@ -156,7 +154,7 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Index(PageViewModel vm)
         {
             if (!ModelState.IsValid) { return View(vm); }
-            var page = await _context.Pages.FirstOrDefaultAsync(x => x.Slug == "home");
+            var page = await _repo.getPage("home");
             if (page == null)
             {
                 _notification.Error("Page not found");
@@ -168,41 +166,13 @@ namespace BeReal.Areas.Admin.Controllers
             if (vm.Image != null)
             {
                 if (page.ImageUrl != null)
-                    RemoveImage(page.ImageUrl);
-                page.ImageUrl = GetImagePath(vm.Image);
+                    _fileManager.RemoveImage(page.ImageUrl);
+                page.ImageUrl = _fileManager.GetImagePath(vm.Image);
             }
-            await _context.SaveChangesAsync();
+            await _repo.saveChanges();
             _notification.Success("Home Page updated successfully");
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
-        private string GetImagePath(IFormFile formFile)
-        {
-            var folderPath = Path.Combine(_imagePath);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf('.'));
-            var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
-            var filePath = Path.Combine(folderPath, uniqueFileName);
-            using (FileStream fileStream = System.IO.File.Create(filePath))
-            {
-                formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
-            }
-            return uniqueFileName;
-        }
-        private bool RemoveImage(string image)
-        {
-            try
-            {
-                var file = Path.Combine(_imagePath, image);
-                if (System.IO.File.Exists(file))
-                    System.IO.File.Delete(file);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
+        
     }
 }

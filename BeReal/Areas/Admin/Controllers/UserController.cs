@@ -1,37 +1,29 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using BeReal.ViewModels;
 using AspNetCoreHero.ToastNotification.Abstractions;
-using Microsoft.AspNetCore.Identity;
 using BeReal.Models;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
-using BeReal.Data;
+using BeReal.Data.Repository;
 
 namespace BeReal.Areas.Admin.Controllers
 {
     [Area("Admin")]
     public class UserController : Controller
     {
-        private readonly SignInManager<ApplicationUser> _signInManager;
-        private readonly UserManager<ApplicationUser> _userManager;
-        private readonly ApplicationDbContext _context;
+        private readonly IRepository _repo;
         public INotyfService _notification { get; }
 
-        public UserController(ApplicationDbContext context, SignInManager<ApplicationUser> signInManager,
-            UserManager<ApplicationUser> userManager, 
-            INotyfService notification)
+        public UserController(INotyfService notification, IRepository repo)
         {
+            _repo = repo;
             _notification = notification;
-            _signInManager = signInManager;
-            _userManager = userManager;
-            _context = context;
         }
         [Authorize(Roles = "Admin")]
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            var users = await _userManager.Users.ToListAsync();
+            var users = await _repo.getUsers();
             var userViewModel = users.Select(x => new UserViewModel()
             {
                 Id = x.Id,
@@ -43,13 +35,11 @@ namespace BeReal.Areas.Admin.Controllers
 
             foreach(var user in userViewModel)
             {
-                var oneUser = await _userManager.FindByIdAsync(user.Id!);
-                var role = await _userManager.GetRolesAsync(oneUser!);
-                user.Role = role.FirstOrDefault();
-                var postCount = _context.Posts.Where(x => x.User!.Id == oneUser!.Id).Count();
-                var commentCount = _context.Comments.Where(x => x.User!.Id != oneUser!.Id).Count();
-                user.NumberPosts = postCount;
-                user.NumberComments = commentCount;
+                var oneUser = await _repo.getUserById(user.Id!);
+                var role = await _repo.getUserRole(oneUser!);
+                user.Role = role[0];
+                user.NumberPosts = _repo.getPostCount(oneUser!.Id);
+                user.NumberComments = _repo.getCommentCount(oneUser.Id);
             }
             return View(userViewModel);
         }
@@ -73,19 +63,19 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 return View(lvm);
             }
-            var username = _userManager.Users.FirstOrDefault(x => x.UserName == lvm.Username);
+            var username = await _repo.getUserByUsername(lvm.Username!);
             if (username == null)
             {
                 _notification.Error("Username does not exist!");
                 return View(lvm);
             }
-            var checkPassword = await _userManager.CheckPasswordAsync(username, lvm.Password!);
+            var checkPassword = await _repo.checkPasswordForLogin(username, lvm.Password!);
             if (!checkPassword)
             {
                 _notification.Error("Password does not match!");
                 return View(lvm);
             }
-            await _signInManager.PasswordSignInAsync(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
+            await _repo.signIn(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
             if (lvm.ReturnUrl == null)
             {
@@ -98,7 +88,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public IActionResult Logout()
         {
-            _signInManager.SignOutAsync();
+            _repo.logout();
             _notification.Success("Logged Out");
             return RedirectToAction("Index", "Home", new {area = ""});
         } 
@@ -113,13 +103,13 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Register(RegisterViewModel rvm)
         {
             if (!ModelState.IsValid) { return View(rvm); }
-            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
+            var checkEmail = await _repo.getUserByEmail(rvm.Email!);
             if (checkEmail != null)
             {
                 _notification.Error("This email is already registered.");
                 return View(rvm);
             }
-            var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
+            var checkUsername = await _repo.getUserByUsername(rvm.Username!);
             if (checkUsername != null)
             {
                 _notification.Error("This username is not available.");
@@ -137,16 +127,16 @@ namespace BeReal.Areas.Admin.Controllers
                 UserName = rvm.Username,
                 Email = rvm.Email,
             };
-            var checkUser = await _userManager.CreateAsync(user, rvm.Password!);
+            var checkUser = await _repo.createUser(user, rvm.Password!);
             if (checkUser.Succeeded)
             {
                 if (rvm.isAdmin)
                 {
-                    await _userManager.AddToRoleAsync(user, Roles.Admin);
+                    await _repo.giveRoleToUser(user, Roles.Admin);
                 }
                 else
                 {
-                    await _userManager.AddToRoleAsync(user, Roles.User);
+                    await _repo.giveRoleToUser(user, Roles.User);
                 }
                 _notification.Success("User registered successfully!");
                 return RedirectToAction("Index", "Post", new {area = "Admin"});
@@ -157,7 +147,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> ResetPassword(string id)
         {
-            var thisUser = await _userManager.FindByIdAsync(id);
+            var thisUser = await _repo.getUserById(id);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
@@ -175,14 +165,14 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm)
         {
             if (!ModelState.IsValid) { return View(rpvm); }
-            var thisUser = await _userManager.FindByIdAsync(rpvm.Id!);
+            var thisUser = await _repo.getUserById(rpvm.Id!);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
                 return View(rpvm);
             }
-            var token = await _userManager.GeneratePasswordResetTokenAsync(thisUser);
-            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword!);
+            var token = await _repo.generateToken(thisUser);
+            var reset = await _repo.resetPassword(thisUser, token, rpvm.NewPassword!);
             if (reset.Succeeded)
             {
                 _notification.Success("Password changed successfully");
@@ -205,13 +195,13 @@ namespace BeReal.Areas.Admin.Controllers
                 _notification.Warning("Please fill in all the fields");
                 return View(rvm); 
             }
-            var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
+            var checkEmail = await _repo.getUserByEmail(rvm.Email!);
             if (checkEmail != null)
             {
                 _notification.Error("This email is already registered.");
                 return View(rvm);
             }
-            var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
+            var checkUsername = await _repo.getUserByUsername(rvm.Username!);
             if (checkUsername != null)
             {
                 _notification.Error("This username is not available.");
@@ -229,10 +219,10 @@ namespace BeReal.Areas.Admin.Controllers
                 UserName = rvm.Username,
                 Email = rvm.Email,
             };
-            var checkUser = await _userManager.CreateAsync(user, rvm.Password!);
+            var checkUser = await _repo.createUser(user, rvm.Password!);
             if (checkUser.Succeeded)
             {
-                await _userManager.AddToRoleAsync(user, Roles.User);
+                await _repo.giveRoleToUser(user, Roles.User);
                 _notification.Success("User registered successfully!");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
@@ -242,8 +232,8 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> ChangeRole(string id)
         {
-            var thisUser = await _userManager.FindByIdAsync(id);
-            var userRole = await _userManager.GetRolesAsync(thisUser!);
+            var thisUser = await _repo.getUserById(id);
+            var userRole = await _repo.getUserRole(thisUser!);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
@@ -251,13 +241,13 @@ namespace BeReal.Areas.Admin.Controllers
             }
             if (userRole[0] == Roles.Admin)
             {
-                await _userManager.RemoveFromRoleAsync(thisUser, Roles.Admin);
-                await _userManager.AddToRoleAsync(thisUser, Roles.User);
+                await _repo.removeRoleFromUser(thisUser, Roles.Admin);
+                await _repo.giveRoleToUser(thisUser, Roles.User);
             }
             else if (userRole[0] == Roles.User)
             {
-                await _userManager.RemoveFromRoleAsync(thisUser, Roles.User);
-                await _userManager.AddToRoleAsync(thisUser, Roles.Admin);
+                await _repo.removeRoleFromUser(thisUser, Roles.User);
+                await _repo.giveRoleToUser(thisUser, Roles.Admin);
             }
             return RedirectToAction("Index", "User", new { area = "Admin" });
         }
@@ -266,7 +256,7 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> EditProfile(string id)
         {
-            var user = await _userManager.FindByIdAsync(id);
+            var user = await _repo.getUserById(id);
             if (user == null)
             {
                 _notification.Error("User does not exist");
@@ -285,7 +275,7 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> EditProfile(ProfileViewModel rvm)
         {
-            var oldUser = await _userManager.FindByNameAsync(rvm.Username!);
+            var oldUser = await _repo.getUserByUsername(rvm.Username!);
             if (!ModelState.IsValid)
             {
                 _notification.Warning("Please fill in all the fields");
@@ -293,7 +283,7 @@ namespace BeReal.Areas.Admin.Controllers
             }
             if (oldUser!.Email != rvm.Email)
             {
-                var checkEmail = await _userManager.FindByEmailAsync(rvm.Email!);
+                var checkEmail = await _repo.getUserByEmail(rvm.Email!);
                 if (checkEmail != null)
                 {
                     _notification.Error("This email is already registered.");
@@ -302,14 +292,14 @@ namespace BeReal.Areas.Admin.Controllers
             }
             if (oldUser.UserName != rvm.Username)
             {
-                var checkUsername = await _userManager.FindByNameAsync(rvm.Username!);
+                var checkUsername = await _repo.getUserByUsername(rvm.Username!);
                 if (checkUsername != null)
                 {
                     _notification.Error("This username is not available.");
                     return View(rvm);
                 }
             }
-            var confirmPassword = await _userManager.CheckPasswordAsync(oldUser!, rvm.Password!);
+            var confirmPassword = await _repo.checkPasswordForLogin(oldUser!, rvm.Password!);
             if (!confirmPassword)
             {
                 _notification.Error("Password is not correct");
@@ -319,7 +309,7 @@ namespace BeReal.Areas.Admin.Controllers
             oldUser.LastName = rvm.LastName;
             oldUser.UserName = rvm.Username;
             oldUser.Email = rvm.Email;
-            var checkUser = await _userManager.UpdateAsync(oldUser);   
+            var checkUser = await _repo.updateUser(oldUser);   
             if (checkUser.Succeeded)
             {
                 _notification.Success("User profile updated successfully!");
@@ -332,7 +322,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> ResetUserPassword(string id)
         {
-            var thisUser = await _userManager.FindByIdAsync(id);
+            var thisUser = await _repo.getUserById(id);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
@@ -350,18 +340,18 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> ResetUserPassword(ResetPasswordViewModel rpvm)
         {
             if (!ModelState.IsValid) { return View(rpvm); }
-            var thisUser = await _userManager.FindByIdAsync(rpvm.Id!);
+            var thisUser = await _repo.getUserById(rpvm.Id!);
             if (thisUser == null)
             {
                 _notification.Error("User does not exist");
                 return View(rpvm);
             }
-            var token = await _userManager.GeneratePasswordResetTokenAsync(thisUser);
-            var reset = await _userManager.ResetPasswordAsync(thisUser, token, rpvm.NewPassword!);
+            var token = await _repo.generateToken(thisUser);
+            var reset = await _repo.resetPassword(thisUser, token, rpvm.NewPassword!);
             if (reset.Succeeded)
             {
                 _notification.Success("Password changed successfully");
-                return RedirectToAction("Profile", "Home", new { area = ""});
+                return RedirectToAction("Index", "Post", new { area = "Admin"});
             }
             return View(rpvm);
         }

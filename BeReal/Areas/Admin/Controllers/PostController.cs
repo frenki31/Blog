@@ -1,13 +1,11 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
-using BeReal.Data;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using BeReal.Models;
-using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
 using X.PagedList;
+using BeReal.Data.Repository;
 
 namespace BeReal.Areas.Admin.Controllers
 {
@@ -15,33 +13,28 @@ namespace BeReal.Areas.Admin.Controllers
     [Authorize]
     public class PostController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private string _imagePath;
-        private readonly UserManager<ApplicationUser> _userManager;
+        public readonly IRepository _repo;
+        public readonly IFileManager _fileManager;
         public INotyfService _notification { get; }
-        public PostController(ApplicationDbContext context, 
-            IConfiguration config,
-            INotyfService notification,
-            UserManager<ApplicationUser> userManager)
+        public PostController(INotyfService notification,IRepository repo,IFileManager fileManager)
         {
-            _context = context;
             _notification = notification;
-            _userManager = userManager;
-            _imagePath = config["Path:Images"]!;
+            _fileManager = fileManager;
+            _repo = repo;
         }
         [HttpGet]
         public async Task<IActionResult> Index(int? page)
         {
             var posts = new List<Post>();
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin)
             {
-                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.Comments).ToListAsync();
+                posts = await _repo.getAllPosts();
             }
             else
             {
-                posts = await _context.Posts.Include(x => x.Document).Include(x => x.User).Include(x => x.Comments).Where(x => x.User!.Id == loggedUser!.Id).ToListAsync();
+                posts = await _repo.getPostsOfUser(loggedUser!.Id);
             }
             var pageSize = 5;
             var pageNumber = (page ?? 1);
@@ -70,14 +63,14 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
             if (!ModelState.IsValid) { return View(model); }
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             Document? file = null;
             if (model.File != null)
             {
-                file = await GetFileInfo(model);
-                await _context.Files.AddAsync(file);
-                await _context.SaveChangesAsync();
+                file = await _fileManager.GetFileInfo(model);
+                _fileManager.AddFile(file);
+                await _repo.saveChanges();
             }
             var post = new Post
             {
@@ -98,7 +91,7 @@ namespace BeReal.Areas.Admin.Controllers
             }
             if (model.Image != null)
             {
-                post.Image = GetImagePath(model.Image);
+                post.Image = _fileManager.GetImagePath(model.Image);
             }
             if (loggedUserRole[0] == Roles.Admin)
             {
@@ -109,8 +102,8 @@ namespace BeReal.Areas.Admin.Controllers
                 post.Approved = false;
                 _notification.Success("Waiting for approval");
             }
-            await _context.Posts.AddAsync(post);
-            await _context.SaveChangesAsync();
+            _repo.addPost(post);
+            await _repo.saveChanges();
             
             return RedirectToAction("Index");
         }
@@ -118,15 +111,15 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var post = await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.Id == id);
+            var post = await _repo.getPostWithDocById(id);
             if (post == null)
             {
                 _notification.Error("Post not found");
                 return View();
             }
             
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             if (loggedUserRole[0] != Roles.Admin && loggedUser!.Id != post.User!.Id)
             {
                 _notification.Error("You are not authorized");
@@ -151,10 +144,10 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(CreatePostViewModel vm) 
         { 
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             if (!ModelState.IsValid) {  return View(vm); }
-            var post = await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.Id == vm.Id);
+            var post = await _repo.getPostWithDocById(vm.Id);
             if (post == null)
             {
                 _notification.Error("Post not found");
@@ -165,29 +158,29 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
-            post.Document = vm.File != null ? await GetFileInfo(vm) : null;
+            post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm) : null;
             if (vm.Image != null)
             {
                 if (post.Image != null) 
-                    RemoveImage(post.Image);
-                post.Image = GetImagePath(vm.Image);
+                    _fileManager.RemoveImage(post.Image);
+                post.Image = _fileManager.GetImagePath(vm.Image);
             }
             post.Approved = loggedUserRole[0] == Roles.Admin ? true : false;
             string message = post.Approved == true ? "Post Updated Successfully" : "Post Updated. Waiting for approval";
-            await _context.SaveChangesAsync();
+            await _repo.saveChanges();
             _notification.Success(message);
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Id == id);
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var post = await _repo.getPostById(id);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == post!.User!.Id)
             {
-                _context.Posts.Remove(post!);
-                await _context.SaveChangesAsync();
+                _repo.removePost(post!);
+                await _repo.saveChanges();
                 _notification.Success("Post Deleted Successfully");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
@@ -200,7 +193,7 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 return NotFound();
             }
-            var file = await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
+            var file = await _fileManager.GetFileById(id);
             if (file == null)
             {
                 return NotFound();
@@ -212,7 +205,7 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)
         {
-            var post = _context.Posts.FirstOrDefault(p => p.Id == id);
+            var post = await _repo.getPostById(id);
             if (post == null)
             {
                 _notification.Error("Post does not exist");
@@ -220,56 +213,10 @@ namespace BeReal.Areas.Admin.Controllers
             }
             post.Approved = true;
             _notification.Success("Post was approved");
-            _context.Posts.Update(post);
-            await _context.SaveChangesAsync();
+            _repo.updatePost(post);
+            await _repo.saveChanges();
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
-        private string GetImagePath(IFormFile formFile)
-        {
-            var folderPath = Path.Combine(_imagePath);
-            if (!Directory.Exists(folderPath))
-            {
-                Directory.CreateDirectory(folderPath);
-            }
-            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf("."));
-            var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
-            var filePath = Path.Combine(folderPath, uniqueFileName);
-            using (FileStream fileStream = System.IO.File.Create(filePath))
-            {
-                formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
-            }
-            return uniqueFileName;
-        }
-        private bool RemoveImage(string image)
-        {
-            try
-            {
-                var file = Path.Combine(_imagePath, image);
-                if (System.IO.File.Exists(file))
-                    System.IO.File.Delete(file);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-        private async Task<Document> GetFileInfo(CreatePostViewModel vm)
-        {
-            List<string> suffixes = new List<string> { ".pdf",".docx",".xlsx",".csv"};
-            string suffix = vm.File!.UploadedFile!.FileName.Substring(vm.File.UploadedFile.FileName.LastIndexOf('.'));
-            if (suffixes.Contains(suffix))
-            {
-                string fileName = Path.GetFileName(vm.File.UploadedFile.FileName);
-                string contentType = vm.File.UploadedFile.ContentType;
-                using (var memoryStream = new MemoryStream())
-                {
-                    await vm.File.UploadedFile.CopyToAsync(memoryStream);
-                    return new Document { Id = vm.File!.Id, FileName = fileName, ContentType = contentType, Data = memoryStream.ToArray() };
-                }
-            }
-            return new Document { };
-        }
+        
     }
 }

@@ -1,26 +1,20 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
-using BeReal.Data;
-using BeReal.Models;
+using BeReal.Data.Repository;
 using BeReal.Utilities;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Hosting;
 
 namespace BeReal.Controllers
 {
     public class BlogController : Controller
     {
-        private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IRepository _repo;
         public INotyfService _notification { get; }
-        public BlogController(ApplicationDbContext context, INotyfService notification, UserManager<ApplicationUser> userManager)
+        public BlogController(INotyfService notification, IRepository repo)
         {
-            _context = context;
             _notification = notification;
-            _userManager = userManager;
+            _repo = repo;
         }
 
         [HttpGet("[controller]/{slug}")]
@@ -31,12 +25,7 @@ namespace BeReal.Controllers
                 _notification.Error("Post not found");
                 return View();
             }
-            var post = await _context.Posts.Include(p => p.Comments!)
-                                                .ThenInclude(comment => comment.User)
-                                           .Include(x => x.Comments!)
-                                                .ThenInclude(comment => comment.Replies!)
-                                           .Include(p => p.User)
-                                           .FirstOrDefaultAsync(x => x.Slug == slug);
+            var post = await _repo.getBlogPost(slug);
             if (post == null)
             {
                 _notification.Error("Post not found");
@@ -58,28 +47,28 @@ namespace BeReal.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            var post = await _context.Posts.FirstOrDefaultAsync(x => x.Id == vm.Post.Id);
+            var post = await _repo.getPostById(vm.Post.Id);
             if (post == null)
             {
                 return NotFound();
             }
 
             var comment = vm.Comment;
-            comment.User = await _userManager.GetUserAsync(User);
+            comment.User = await _repo.getCommentUser(User);
             comment.Post = post;
             comment.Created = DateTime.Now;
 
             if (comment.ParentComment != null)
             {
-                var ParComment = await _context.Comments.FirstOrDefaultAsync(c => c.Id == comment.ParentComment.Id);
+                var ParComment = await _repo.getCommentById(comment.ParentComment.Id);
                 if (ParComment != null)
                 {
                     comment.ParentComment = ParComment;
                 }
             }
 
-            _context.Comments.Add(comment);
-            await _context.SaveChangesAsync();
+            _repo.addComment(comment);
+            await _repo.saveChanges();
 
             return RedirectToAction("Post", new { slug = post.Slug });
         }
@@ -88,18 +77,18 @@ namespace BeReal.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteComment(int id, string slug)
         {
-            var post = await _context.Posts.FirstOrDefaultAsync(p => p.Slug == slug);
-            var Comment = await _context.Comments.Include(c => c.Replies).FirstOrDefaultAsync(comment => comment.Id == id);
-            var loggedUser = await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-            var loggedUserRole = await _userManager.GetRolesAsync(loggedUser!);
+            var post = await _repo.getPostBySlug(slug);
+            var Comment = await _repo.getCommentWithReplies(id);
+            var loggedUser = await _repo.getLoggedUser(User);
+            var loggedUserRole = await _repo.getUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == Comment!.User!.Id)
             {
                 if (Comment!.Replies != null)
                 {
-                    _context.Comments.RemoveRange(Comment.Replies);
+                    _repo.removeReplies(Comment);
                 }
-                _context.Comments.Remove(Comment!);
-                await _context.SaveChangesAsync();
+                _repo.removeComment(Comment);
+                await _repo.saveChanges();
                 _notification.Success("Comment deleted successfully");
                 return RedirectToAction("Post", new { slug = post!.Slug });
             }

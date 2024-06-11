@@ -74,7 +74,7 @@
 
                             @if (post.Document != null)
                             {
-                                <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.Id">
+                                <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.Id">
                                     <input type="submit" class="btn btn-primary" value="Download" />
                                 </form>
                             }
