@@ -5,17 +5,8 @@
     await Html.RenderPartialAsync("_Navbar");
 }
 <div class="container-fluid">
-    <!-- 404 Error Text -->
     <div class="text-center">
-        <div class="error mx-auto" data-text="404">404</div>
         <p class="lead text-gray-800 mb-5">You have no access!!!</p>
-        <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post">
-            <button type="submit" class="btn btn-outline-primary">
-                &larr; Back to Home
-            </button>
-        </form>
+        <a class="btn btn-outline-primary" asp-action="Index" asp-controller="Post" asp-area="Admin">&larr; Back to Posts</a>
     </div>
 </div>
-@{
-    await Html.RenderPartialAsync("_Footer");
-}

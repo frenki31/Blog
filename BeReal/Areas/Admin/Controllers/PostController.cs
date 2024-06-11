@@ -158,7 +158,7 @@ namespace BeReal.Areas.Admin.Controllers
             post.Description = vm.Description;
             post.Category = vm.Category;
             post.Tags = vm.Tags;
-            post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm) : null;
+            post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm) : post.Document;
             if (vm.Image != null)
             {
                 if (post.Image != null) 

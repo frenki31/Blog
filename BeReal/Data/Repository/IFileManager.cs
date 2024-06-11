@@ -9,7 +9,7 @@ namespace BeReal.Data.Repository
         string GetImagePath(IFormFile formFile);
         bool RemoveImage(string image);
         void AddFile(Document file);
-        Task<Document> GetFileById(int? id);
+        Task<Document?> GetFileById(int? id);
         Task<Document> GetFileInfo(CreatePostViewModel vm);
     }
 }

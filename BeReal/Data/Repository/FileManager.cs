@@ -97,6 +97,6 @@ namespace BeReal.Data.Repository
             return new Document { };
         }
         public void AddFile(Document file) => _context.Files.Add(file);
-        public async Task<Document> GetFileById(int? id) => await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
+        public async Task<Document?> GetFileById(int? id) => await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
     }
 }
