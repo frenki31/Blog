@@ -59,6 +59,7 @@ namespace BeReal.Data.Repository
                                        .Include(x => x.Comments!)
                                            .ThenInclude(comment => comment.Replies!)
                                        .Include(p => p.User)
+                                       .Include(p => p.Document)
                                            .FirstOrDefaultAsync(x => x.Slug == slug);
         }
         public async Task<Post?> getPostById(int id) => await _context.Posts.FirstOrDefaultAsync(x => x.Id == id);

@@ -52,7 +52,18 @@
 <div class="container">
     <div class="row mt-5">
         <div class="col-lg-8 col-md-10 mx-auto">
-            <h3 class="mb-5">@Model.Post.Comments!.Count() Comments</h3>
+            @if (Model.Post.Document != null)
+            {
+                <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@Model.Post.Document.Id">
+                    <input type="submit" class="btn btn-primary" value="Download" />
+                </form>
+            }
+            <h3 class="mb-5">
+                @{
+                    string number = Model.Post.Comments!.Count() != 1 ? $"{Model.Post.Comments!.Count()} Comments" : "1 Comment";
+                }
+                @number
+            </h3>
             <ul class="comment-list comment-top" list="@Model.Post.Comments" count="0">
                 @foreach (var comment in Model.Post.Comments!.Where(comment => comment.ParentComment is null))
                 {
