@@ -1,5 +1,4 @@
-﻿using BeReal.Models;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace BeReal.ViewModels
 {
