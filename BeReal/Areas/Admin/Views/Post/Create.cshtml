@@ -19,32 +19,26 @@
                         <div class="mb-2">
                             <label>Title</label>
                             <input asp-for="Title" type="text" class="form-control" />
-                            <span asp-validation-for="Title" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
                             <label>Short Description</label>
                             <input asp-for="ShortDescription" type="text" class="form-control" />
-                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
                             <label>Category</label>
-                            <select asp-for="Category" class="form-control">
-                                <option value="Sports">Sports</option>
-                                <option value="Travel">Travel</option>
-                                <option value="Lifestyle">Lifestyle</option>
-                                <option value="Programming">Programming</option>
-                            </select>
-                            <span asp-validation-for="Category" class="text-danger"></span>
+                            <input asp-for="Category" type="text" id="myTextField" class="form-control" readonly>
+                            <label><input type="checkbox" class="myCheckbox" value="Sports">Sports</label>
+                            <label><input type="checkbox" class="myCheckbox" value="Travel">Travel</label>
+                            <label><input type="checkbox" class="myCheckbox" value="Lifestyle">Lifestyle</label>
+                            <label><input type="checkbox" class="myCheckbox" value="Programming">Programming</label>
                         </div>
                         <div class="mb-2">
                             <label>Tags</label>
                             <input asp-for="Tags" type="text" class="form-control" />
-                            <span asp-validation-for="Tags" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
                             <label>Description</label>
                             <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-3">
@@ -77,5 +71,16 @@
             $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
             document.getElementById("thumbnail").src = window.URL.createObjectURL(this.files[0])
         });
+        
+        var checkboxes = document.getElementsByClassName('myCheckbox');
+        for (var i = 0; i < checkboxes.length; i++) {
+            checkboxes[i].addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('myTextField').value += ' ' + this.value;
+                } else {
+                    document.getElementById('myTextField').value = document.getElementById('myTextField').value.replace(' ' + this.value, '');
+                }
+            });
+        }
     </script>
 }
