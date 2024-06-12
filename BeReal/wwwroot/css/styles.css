@@ -1,0 +1,13 @@
+﻿@media screen and (max-width: 1207px) {
+        .post-preview .row .col-lg-5 a{
+            display: none;
+        }
+}
+
+@media screen and (max-width: 768px) {
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 14px;
+    }
+}
+

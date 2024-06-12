@@ -8,6 +8,7 @@
     await Html.RenderPartialAsync("_Navbar");
     await Html.RenderPartialAsync("_HomeHeader");
 }
+<link href="~/css/styles.css" rel="stylesheet" />
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
         <div class="col-md-10 col-lg-8 col-xl-7 ">
@@ -21,18 +22,18 @@
                     </div>
                 </div>
             </form>
-            <form asp-controller="Home" asp-action="Index" class="justify-content-center align-content-center">
-                <input asp-route-catergory="" type="submit" value="All" class="btn btn-default" />
-                <input asp-route-category="Programming" type="submit" value="Programming" class="btn btn-default" />
-                <input asp-route-category="Travel" type="submit" value="Travel" class="btn btn-default" />
-                <input asp-route-category="Sports" type="submit" value="Sports" class="btn btn-default" />
-                <input asp-route-category="Lifestyle" type="submit" value="Lifestyle" class="btn btn-default" />
+            <form asp-controller="Home" asp-action="Index" class="d-flex flex-row justify-content-center align-items-center flex-nowrap">
+                <input asp-route-catergory="" type="submit" value="All" class="btn btn-default btn-small m-1" />
+                <input asp-route-category="Programming" type="submit" value="Programming" class="btn btn-default btn-small m-1" />
+                <input asp-route-category="Travel" type="submit" value="Travel" class="btn btn-default btn-small m-1" />
+                <input asp-route-category="Sports" type="submit" value="Sports" class="btn btn-default btn-small m-1" />
+                <input asp-route-category="Lifestyle" type="submit" value="Lifestyle" class="btn btn-default btn-small m-1" />
             </form>
             @foreach (var post in Model.Posts!)
             {
                 <div class="post-preview">
                     <div class="row">
-                        <div class="col-7 d-flex justify-content-center flex-column">
+                        <div class="col-lg-7 col-md-12 d-flex justify-content-center flex-column">
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
                                 <h2 class="post-title">@post.Title</h2>
                                 <h4 class="post-subtitle">@post.ShortDescription</h4>
@@ -51,12 +52,12 @@
                                 </form>
                             }
                         </div>
-                        <div class="col-5 d-flex justify-content-end flex-column">
+                        <div class="col-lg-5 col-md-12 d-flex justify-content-end flex-column">
                             @{
                                 string Image = post.Image == null ? "default_image.png" : post.Image;
                             }
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
-                                <img class="img-fluid" src="~/images/@Image" style="object-fit:cover; height:100%; width:100%" />
+                                <img class="img-fluid" src="~/images/@Image" />
                             </a>
                         </div>
                     </div>

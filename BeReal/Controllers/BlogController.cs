@@ -48,7 +48,7 @@ namespace BeReal.Controllers
             if (post == null) 
                 return NotFound(); 
             var comment = vm.Comment;
-            comment.ApplicationUser = await _usersOperations.getCommentUser(User);
+            comment.ApplicationUser = await _usersOperations.GetCommentUser(User);
             comment.Post = post;
             comment.Created = DateTime.Now;
             if (comment.ParentComment != null)
@@ -67,8 +67,8 @@ namespace BeReal.Controllers
         {
             var post = await _postsOperations.getPostBySlug(slug);
             var Comment = await _commentsOperations.getCommentWithReplies(id);
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == Comment!.ApplicationUser!.Id)
             {
                 if (Comment!.Replies != null)

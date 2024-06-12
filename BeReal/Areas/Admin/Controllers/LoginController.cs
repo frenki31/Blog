@@ -36,15 +36,15 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Login(LoginViewModel lvm)
         {
             if (!ModelState.IsValid) return View(lvm);
-            var username = await _usersOperations.getUserByUsername(lvm.Username!);
+            var username = await _usersOperations.GetUserByUsername(lvm.Username!);
             if (username == null) return View(lvm);
-            var checkPassword = await _usersOperations.checkPasswordForLogin(username, lvm.Password!);
+            var checkPassword = await _usersOperations.CheckPasswordForLogin(username, lvm.Password!);
             if (!checkPassword)
             {
                 _notification.Error("Password does not match!");
                 return View(lvm);
             }
-            await _usersOperations.signIn(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
+            await _usersOperations.SignIn(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
             _notification.Success("Login Successful");
             if (lvm.ReturnUrl == null)
                 return RedirectToAction(nameof(Index), "Home", new { area = "" });
@@ -52,33 +52,22 @@ namespace BeReal.Areas.Admin.Controllers
                 return Redirect(lvm.ReturnUrl);
         }
         [HttpGet]
-        public IActionResult RegisterUser()
+        public IActionResult Register()
         {
             return View(new RegisterViewModel());
         }
         [HttpPost]
-        public async Task<IActionResult> RegisterUser(RegisterViewModel rvm)
+        public async Task<IActionResult> Register(RegisterViewModel rvm)
         {
             if (!ModelState.IsValid)
             {
                 _notification.Warning("Please fill in all the fields");
                 return View(rvm);
             }
-            var checkEmail = await _usersOperations.getUserByEmail(rvm.Email!);
-            if (checkEmail != null)
+            var validateUser = await _usersOperations.ValidateUser(rvm,_usersOperations);
+            if (validateUser != null)
             {
-                _notification.Error("This email is already registered.");
-                return View(rvm);
-            }
-            var checkUsername = await _usersOperations.getUserByUsername(rvm.Username!);
-            if (checkUsername != null)
-            {
-                _notification.Error("This username is not available.");
-                return View(rvm);
-            }
-            if (rvm.Password != rvm.ConfirmPassword)
-            {
-                _notification.Error("Passwords do not match");
+                _notification.Error(validateUser);
                 return View(rvm);
             }
             var user = new BR_ApplicationUser()
@@ -88,10 +77,10 @@ namespace BeReal.Areas.Admin.Controllers
                 UserName = rvm.Username,
                 Email = rvm.Email,
             };
-            var checkUser = await _usersOperations.createUser(user, rvm.Password!);
+            var checkUser = await _usersOperations.CreateUser(user, rvm.Password!);
             if (checkUser.Succeeded)
             {
-                await _usersOperations.giveRoleToUser(user, Roles.User);
+                await _usersOperations.GiveRoleToUser(user, Roles.User);
                 _notification.Success("User registered successfully!");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }

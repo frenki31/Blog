@@ -30,8 +30,8 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Index(int? page)
         {
             var posts = new List<BR_Post>();
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             posts = loggedUserRole[0] == Roles.Admin ? await _postsOperations.getAllPosts() : await _postsOperations.getPostsOfUser(loggedUser!.Id);
             var pageSize = 5;
             var pageNumber = (page ?? 1);
@@ -60,8 +60,8 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Create(CreatePostViewModel model)
         {
             if (!ModelState.IsValid) return View(model); 
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             BR_Document? file = null;
             if (model.File != null)
             {
@@ -99,8 +99,8 @@ namespace BeReal.Areas.Admin.Controllers
         {
             var post = await _postsOperations.getPostWithDocById(id);
             if (post == null) return View();
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] != Roles.Admin && loggedUser!.Id != post.ApplicationUser!.Id)
             {
                 _notification.Error("You are not authorized");
@@ -123,8 +123,8 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Edit(CreatePostViewModel vm) 
         {
             if (!ModelState.IsValid) return View(vm);
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             var post = await _postsOperations.getPostWithDocById(vm.Id);
             if (post == null) return View();
             post.Title = vm.Title;
@@ -149,8 +149,8 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var post = await _postsOperations.getPostById(id);
-            var loggedUser = await _usersOperations.getLoggedUser(User);
-            var loggedUserRole = await _usersOperations.getUserRole(loggedUser!);
+            var loggedUser = await _usersOperations.GetLoggedUser(User);
+            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == post!.ApplicationUser!.Id)
             {
                 _postsOperations.removePost(post!);
@@ -163,10 +163,8 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Download(int? id)
         {
-            if (id == null) return NotFound();
-            var file = await _fileManager.GetFileById(id);
-            if (file == null) return NotFound();
-            return File(file.Data!, file.ContentType!, file.FileName);
+            var (fileData, contentType, fileName) = await _fileManager.DownloadFile(id,_fileManager);
+            return File(fileData, contentType, fileName);
         }
 
         [HttpPost]

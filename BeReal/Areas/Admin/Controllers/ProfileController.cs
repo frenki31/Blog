@@ -20,7 +20,7 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> EditProfile(string id)
         {
-            var user = await _usersOperations.getUserById(id);
+            var user = await _usersOperations.GetUserById(id);
             if (user == null) return View();
             var userVM = new ProfileViewModel
             {
@@ -35,7 +35,7 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize]
         public async Task<IActionResult> EditProfile(ProfileViewModel rvm, string id)
         {
-            var oldUser = await _usersOperations.getUserByUsername(rvm.Username!);
+            var oldUser = await _usersOperations.GetUserByUsername(rvm.Username!);
             if (!ModelState.IsValid)
             {
                 _notification.Warning("Please fill in all the fields");
@@ -43,14 +43,14 @@ namespace BeReal.Areas.Admin.Controllers
             }
             if (oldUser!.Email != rvm.Email)
             {
-                var checkEmail = await _usersOperations.getUserByEmail(rvm.Email!);
+                var checkEmail = await _usersOperations.GetUserByEmail(rvm.Email!);
                 if (checkEmail != null)
                 {
                     _notification.Error("This email is already registered.");
                     return View(rvm);
                 }
             }
-            var confirmPassword = await _usersOperations.checkPasswordForLogin(oldUser!, rvm.Password!);
+            var confirmPassword = await _usersOperations.CheckPasswordForLogin(oldUser!, rvm.Password!);
             if (!confirmPassword)
             {
                 _notification.Error("Password is not correct");
@@ -59,7 +59,7 @@ namespace BeReal.Areas.Admin.Controllers
             oldUser.FirstName = rvm.FirstName;
             oldUser.LastName = rvm.LastName;
             oldUser.Email = rvm.Email;
-            var checkUser = await _usersOperations.updateUser(oldUser);
+            var checkUser = await _usersOperations.UpdateUser(oldUser);
             if (checkUser.Succeeded)
             {
                 _notification.Success("User profile updated successfully!");
@@ -69,32 +69,26 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize]
         [HttpGet]
-        public async Task<IActionResult> ResetUserPassword(string id)
+        public async Task<IActionResult> ResetPassword(string id)
         {
-            var thisUser = await _usersOperations.getUserById(id);
+            var thisUser = await _usersOperations.GetUserById(id);
             if (thisUser == null) return View();
-            var resetVm = new ResetPasswordViewModel()
-            {
-                Id = thisUser.Id,
-                Username = thisUser.UserName,
-            };
+            var resetVm = new ResetPasswordViewModel() { Id = thisUser.Id, Username = thisUser.UserName, };
             return View(resetVm);
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> ResetUserPassword(ResetPasswordViewModel rpvm, string id)
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm, string id)
         {
             if (!ModelState.IsValid) return View(rpvm);
-            var thisUser = await _usersOperations.getUserById(rpvm.Id!);
-            if (thisUser == null) return View(rpvm);
-            var token = await _usersOperations.generateToken(thisUser);
-            var reset = await _usersOperations.resetPassword(thisUser, token, rpvm.NewPassword!);
-            if (reset.Succeeded)
+            var validatePasswordReset = await _usersOperations.ValidateResetPassword(rpvm, _usersOperations);
+            if (validatePasswordReset != null)
             {
-                _notification.Success("Password changed successfully");
-                return RedirectToAction("Profile", "Home", new { area = "", id= id});
+                _notification.Error(validatePasswordReset);
+                return View(rpvm);
             }
-            return View(rpvm);
+            _notification.Success("Password changed successfully");
+            return RedirectToAction("Profile", "Home", new { area = "", id= id});
         }
     }
 }

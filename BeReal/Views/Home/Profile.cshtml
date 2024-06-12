@@ -21,7 +21,7 @@
                         @if (authUser!.UserName == Model.Username)
                         {
                             <a asp-action="EditProfile" asp-controller="Profile" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-primary">Edit Profile</a>
-                            <a asp-action="ResetUserPassword" asp-controller="Profile" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
+                            <a asp-action="ResetPassword" asp-controller="Profile" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
                         }
                     }
                 </div>

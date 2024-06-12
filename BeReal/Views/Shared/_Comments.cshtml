@@ -23,7 +23,7 @@
                         <p class="comment-message">@comment.Message</p>
                         @if (!User.Identity!.IsAuthenticated)
                         {
-                            <a class="btn btn-default" asp-action="Login" asp-controller="User" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to reply</a>
+                            <a class="btn btn-default" asp-action="Login" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to reply</a>
                         }
                         else
                         {
@@ -101,5 +101,5 @@
 }
 else
 {
-    <a class="btn btn-default" asp-action="Login" asp-controller="User" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to comment</a>
+    <a class="btn btn-default" asp-action="Login" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to comment</a>
 }

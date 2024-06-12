@@ -10,6 +10,23 @@
         imageUrl = "/blog/assets/img/home-bg.jpg";
     }
 }
+<style>
+    .transparent-form {
+        background: transparent;
+    }
+        .transparent-form .form-control {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            box-shadow: none;
+            border-bottom: 1px solid white;
+            color: white;
+        }
+
+        .transparent-form .form-control::placeholder {
+            color: white;
+        }
+</style>
 <header class="masthead" style="background-image: url('@imageUrl')">
     <div class="container position-relative px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">
@@ -17,7 +34,7 @@
                 <div class="site-heading">
                     <h1>@Model.Title</h1>
                     <span class="subheading">@Model.ShortDescription</span>
-                    <form asp-controller="Home" asp-action="Index" class="form-horizontal mt-4">
+                    <form asp-controller="Home" asp-action="Index" class="form-horizontal mt-4 transparent-form">
                         <div class="input-group mb-3">
                             <input asp-for="Search" type="text" placeholder="Search for a post..." class="form-control" />
                         </div>

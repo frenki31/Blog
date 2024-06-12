@@ -67,8 +67,8 @@ namespace BeReal.Controllers
         }
         public async Task<IActionResult> Profile(string id)
         {
-            var user = await _usersOperations.getUserById(id);
-            var userRole = await _usersOperations.getUserRole(user);
+            var user = await _usersOperations.GetUserById(id);
+            var userRole = await _usersOperations.GetUserRole(user);
             var posts = await _postsOperations.getUserPosts(user!);
             var postCount = posts.Count();
             if (user == null)
@@ -88,10 +88,8 @@ namespace BeReal.Controllers
         [HttpPost]
         public async Task<IActionResult> Download(int? id)
         {
-            if (id == null) return NotFound();
-            var file = await _fileManager.GetFileById(id);
-            if (file == null) return NotFound();
-            return File(file.Data!, file.ContentType!, file.FileName);
+            var (fileData, contentType, fileName) = await _fileManager.DownloadFile(id, _fileManager);
+            return File(fileData, contentType, fileName);
         }
     }
 }

@@ -11,5 +11,6 @@ namespace BeReal.Data.Repository.Files
         void AddFile(BR_Document file);
         Task<BR_Document?> GetFileById(int? id);
         Task<BR_Document> GetFileInfo(CreatePostViewModel vm);
+        Task<(byte[], string, string)> DownloadFile(int? id, IFileManager _fileManager);
     }
 }
