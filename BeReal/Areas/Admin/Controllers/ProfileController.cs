@@ -33,7 +33,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> EditProfile(ProfileViewModel rvm)
+        public async Task<IActionResult> EditProfile(ProfileViewModel rvm, string id)
         {
             var oldUser = await _usersOperations.getUserByUsername(rvm.Username!);
             if (!ModelState.IsValid)
@@ -50,15 +50,6 @@ namespace BeReal.Areas.Admin.Controllers
                     return View(rvm);
                 }
             }
-            if (oldUser.UserName != rvm.Username)
-            {
-                var checkUsername = await _usersOperations.getUserByUsername(rvm.Username!);
-                if (checkUsername != null)
-                {
-                    _notification.Error("This username is not available.");
-                    return View(rvm);
-                }
-            }
             var confirmPassword = await _usersOperations.checkPasswordForLogin(oldUser!, rvm.Password!);
             if (!confirmPassword)
             {
@@ -67,13 +58,12 @@ namespace BeReal.Areas.Admin.Controllers
             }
             oldUser.FirstName = rvm.FirstName;
             oldUser.LastName = rvm.LastName;
-            oldUser.UserName = rvm.Username;
             oldUser.Email = rvm.Email;
             var checkUser = await _usersOperations.updateUser(oldUser);
             if (checkUser.Succeeded)
             {
                 _notification.Success("User profile updated successfully!");
-                return RedirectToAction("Index", "Post", new { area = "Admin" });
+                return RedirectToAction("Profile", "Home", new { area = "", id = id});
             }
             return View(rvm);
         }
@@ -92,7 +82,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> ResetUserPassword(ResetPasswordViewModel rpvm)
+        public async Task<IActionResult> ResetUserPassword(ResetPasswordViewModel rpvm, string id)
         {
             if (!ModelState.IsValid) return View(rpvm);
             var thisUser = await _usersOperations.getUserById(rpvm.Id!);
@@ -102,7 +92,7 @@ namespace BeReal.Areas.Admin.Controllers
             if (reset.Succeeded)
             {
                 _notification.Success("Password changed successfully");
-                return RedirectToAction("Index", "Post", new { area = "Admin" });
+                return RedirectToAction("Profile", "Home", new { area = "", id= id});
             }
             return View(rpvm);
         }

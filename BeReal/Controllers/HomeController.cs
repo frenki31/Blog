@@ -68,7 +68,7 @@ namespace BeReal.Controllers
         public async Task<IActionResult> Profile(string id)
         {
             var user = await _usersOperations.getUserById(id);
-            var userRole = await _usersOperations.getUserRole(user!);
+            var userRole = await _usersOperations.getUserRole(user);
             var posts = await _postsOperations.getUserPosts(user!);
             var postCount = posts.Count();
             if (user == null)

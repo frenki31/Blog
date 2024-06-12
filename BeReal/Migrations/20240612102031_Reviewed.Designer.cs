@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeReal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240612101331_Naming")]
-    partial class Naming
+    [Migration("20240612102031_Reviewed")]
+    partial class Reviewed
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
