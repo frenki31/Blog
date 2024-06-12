@@ -1,5 +1,8 @@
 using AspNetCoreHero.ToastNotification.Abstractions;
-using BeReal.Data.Repository;
+using BeReal.Data.Repository.Files;
+using BeReal.Data.Repository.Pages;
+using BeReal.Data.Repository.Posts;
+using BeReal.Data.Repository.Users;
 using BeReal.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 
@@ -7,12 +10,16 @@ namespace BeReal.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly IRepository _repo;
+        private readonly IUsersOperations _usersOperations;
+        private readonly IPagesOperations _pagesOperations;
+        private readonly IPostsOperations _postsOperations;
         private readonly IFileManager _fileManager;
         public INotyfService _notification { get; }
-        public HomeController(INotyfService notification, IRepository repo, IFileManager fileManager)
+        public HomeController(INotyfService notification, IUsersOperations usersOperations, IPagesOperations pagesOperations, IPostsOperations postsOperations, IFileManager fileManager)
         {
-            _repo = repo;
+            _pagesOperations = pagesOperations;
+            _usersOperations = usersOperations;
+            _postsOperations = postsOperations;
             _notification = notification;
             _fileManager = fileManager; 
         }
@@ -20,10 +27,8 @@ namespace BeReal.Controllers
         {
             if (page < 1)
                 return RedirectToAction("Index", new { page = 1, search, category, startDate, endDate });
-            
-            var home = await _repo.getPage("home");
-            var query = _repo.getFilteredPosts(category, search, startDate, endDate);
-
+            var home = await _pagesOperations.getPage("home");
+            var query = _postsOperations.getFilteredPosts(category, search, startDate, endDate);
             int postCount = query.Count();
             int pageSize = 5;
             int skip = pageSize * (page - 1);
@@ -47,53 +52,27 @@ namespace BeReal.Controllers
         }
         public async Task<IActionResult> About()
         {
-            var page = await _repo.getPage("about");
-            var vm = new PageViewModel()
-            {
-                Title = page!.Title,
-                ShortDescription = page.ShortDescription,
-                Description = page.Description,
-                ImageUrl = page.ImageUrl,
-            };
-            return View(vm);
+            var page = await _pagesOperations.getPage("about");
+            return View(_pagesOperations.GetPageViewModel(page!));
         }
         public async Task<IActionResult> Contact()
         {
-            var page = await _repo.getPage("contact");
-            var vm = new PageViewModel()
-            {
-                Title = page!.Title,
-                ShortDescription = page.ShortDescription,
-                Description = page.Description,
-                ImageUrl = page.ImageUrl,
-            };
-            return View(vm);
+            var page = await _pagesOperations.getPage("contact");
+            return View(_pagesOperations.GetPageViewModel(page!));
         }
         public async Task<IActionResult> Privacy()
         {
-            var page = await _repo.getPage("privacy");
-            var vm = new PageViewModel()
-            {
-                Title = page!.Title,
-                ShortDescription = page.ShortDescription,
-                Description = page.Description,
-                ImageUrl = page.ImageUrl,
-            };
-            return View(vm);
+            var page = await _pagesOperations.getPage("privacy");
+            return View(_pagesOperations.GetPageViewModel(page!));
         }
-
-        [HttpGet]
         public async Task<IActionResult> Profile(string id)
         {
-            var user = await _repo.getUserById(id);
-            var userRole = await _repo.getUserRole(user!);
-            var posts = await _repo.getUserPosts(user!);
+            var user = await _usersOperations.getUserById(id);
+            var userRole = await _usersOperations.getUserRole(user!);
+            var posts = await _postsOperations.getUserPosts(user!);
             var postCount = posts.Count();
             if (user == null)
-            {
-                _notification.Error("User does not exist");
                 return View();
-            }
             var userVM = new UserViewModel
             {
                 Email = user.Email,
@@ -109,15 +88,9 @@ namespace BeReal.Controllers
         [HttpPost]
         public async Task<IActionResult> Download(int? id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            if (id == null) return NotFound();
             var file = await _fileManager.GetFileById(id);
-            if (file == null)
-            {
-                return NotFound();
-            }
+            if (file == null) return NotFound();
             return File(file.Data!, file.ContentType!, file.FileName);
         }
     }

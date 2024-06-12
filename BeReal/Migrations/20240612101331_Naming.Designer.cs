@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeReal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240606135514_Initial")]
-    partial class Initial
+    [Migration("20240612101331_Naming")]
+    partial class Naming
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -25,61 +25,69 @@ namespace BeReal.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("BeReal.Models.Comments.MainComment", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Comment", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("IDBR_Comment")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IDBR_Comment"));
 
-                    b.Property<DateTime?>("Created")
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("Created")
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Message")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PostId")
+                    b.Property<int?>("ParentCommentIDBR_Comment")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
+                    b.Property<int?>("PostIDBR_Post")
+                        .HasColumnType("int");
 
-                    b.HasIndex("PostId");
+                    b.HasKey("IDBR_Comment");
 
-                    b.ToTable("MainComments");
+                    b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ParentCommentIDBR_Comment");
+
+                    b.HasIndex("PostIDBR_Post");
+
+                    b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Comments.SubComment", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Document", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("IDBR_Document")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IDBR_Document"));
 
-                    b.Property<DateTime?>("Created")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("MainCommentId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Message")
+                    b.Property<string>("ContentType")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.Property<byte[]>("Data")
+                        .HasColumnType("varbinary(max)");
 
-                    b.HasIndex("MainCommentId");
+                    b.Property<string>("FileName")
+                        .HasColumnType("nvarchar(max)");
 
-                    b.ToTable("SubComments");
+                    b.HasKey("IDBR_Document");
+
+                    b.ToTable("Files");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Page", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Page", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("IDBR_Page")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IDBR_Page"));
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
@@ -96,18 +104,21 @@ namespace BeReal.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasKey("Id");
+                    b.HasKey("IDBR_Page");
 
                     b.ToTable("Pages");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Post", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Post", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<int>("IDBR_Post")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IDBR_Post"));
+
+                    b.Property<string>("ApplicationUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<bool>("Approved")
                         .HasColumnType("bit");
@@ -121,11 +132,14 @@ namespace BeReal.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Document")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("DocumentIDBR_Document")
+                        .HasColumnType("int");
 
                     b.Property<string>("Image")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("PublicationDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("ShortDescription")
                         .HasColumnType("nvarchar(max)");
@@ -139,15 +153,11 @@ namespace BeReal.Migrations
                     b.Property<string>("Title")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.HasKey("IDBR_Post");
 
-                    b.Property<DateTime>("publicationDate")
-                        .HasColumnType("datetime2");
+                    b.HasIndex("ApplicationUserId");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
+                    b.HasIndex("DocumentIDBR_Document");
 
                     b.ToTable("Posts");
                 });
@@ -359,7 +369,7 @@ namespace BeReal.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-            modelBuilder.Entity("BeReal.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BeReal.Models.BR_ApplicationUser", b =>
                 {
                     b.HasBaseType("Microsoft.AspNetCore.Identity.IdentityUser");
 
@@ -369,32 +379,43 @@ namespace BeReal.Migrations
                     b.Property<string>("LastName")
                         .HasColumnType("nvarchar(max)");
 
-                    b.HasDiscriminator().HasValue("ApplicationUser");
+                    b.HasDiscriminator().HasValue("BR_ApplicationUser");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Comments.MainComment", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Comment", b =>
                 {
-                    b.HasOne("BeReal.Models.Post", null)
-                        .WithMany("MainComments")
-                        .HasForeignKey("PostId");
+                    b.HasOne("BeReal.Models.BR_ApplicationUser", "ApplicationUser")
+                        .WithMany("Comments")
+                        .HasForeignKey("ApplicationUserId");
+
+                    b.HasOne("BeReal.Models.BR_Comment", "ParentComment")
+                        .WithMany("Replies")
+                        .HasForeignKey("ParentCommentIDBR_Comment");
+
+                    b.HasOne("BeReal.Models.BR_Post", "Post")
+                        .WithMany("Comments")
+                        .HasForeignKey("PostIDBR_Post");
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("ParentComment");
+
+                    b.Navigation("Post");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Comments.SubComment", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Post", b =>
                 {
-                    b.HasOne("BeReal.Models.Comments.MainComment", null)
-                        .WithMany("SubComments")
-                        .HasForeignKey("MainCommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
-            modelBuilder.Entity("BeReal.Models.Post", b =>
-                {
-                    b.HasOne("BeReal.Models.ApplicationUser", "User")
+                    b.HasOne("BeReal.Models.BR_ApplicationUser", "ApplicationUser")
                         .WithMany("Posts")
-                        .HasForeignKey("UserId");
+                        .HasForeignKey("ApplicationUserId");
 
-                    b.Navigation("User");
+                    b.HasOne("BeReal.Models.BR_Document", "Document")
+                        .WithMany()
+                        .HasForeignKey("DocumentIDBR_Document");
+
+                    b.Navigation("ApplicationUser");
+
+                    b.Navigation("Document");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -448,18 +469,20 @@ namespace BeReal.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("BeReal.Models.Comments.MainComment", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Comment", b =>
                 {
-                    b.Navigation("SubComments");
+                    b.Navigation("Replies");
                 });
 
-            modelBuilder.Entity("BeReal.Models.Post", b =>
+            modelBuilder.Entity("BeReal.Models.BR_Post", b =>
                 {
-                    b.Navigation("MainComments");
+                    b.Navigation("Comments");
                 });
 
-            modelBuilder.Entity("BeReal.Models.ApplicationUser", b =>
+            modelBuilder.Entity("BeReal.Models.BR_ApplicationUser", b =>
                 {
+                    b.Navigation("Comments");
+
                     b.Navigation("Posts");
                 });
 #pragma warning restore 612, 618

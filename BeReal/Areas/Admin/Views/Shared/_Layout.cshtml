@@ -1,14 +1,11 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
-
 <head>
-
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-
     <title>@ViewData["Title"] - BeReal.</title>
 
     <link rel="icon" type="image/x-icon" href="~/blog/assets/favicon.ico" />
@@ -19,40 +16,22 @@
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,800italic,400,300,600,700,800" rel="stylesheet" type="text/css" />
     <!-- Core theme CSS (includes Bootstrap)-->
     <link href="~/blog/css/styles.css" rel="stylesheet" />
-
     <!-- Custom fonts for this template-->
-    <!--<link href="~/adminPanel/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">-->
-    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
-          rel="stylesheet">
-
+    <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
     <!-- Custom styles for this template-->
-    <!--<link href="~/adminPanel/css/sb-admin-2.min.css" rel="stylesheet">-->
     <link href="https://cdn.datatables.net/2.0.8/css/dataTables.dataTables.min.css" rel="stylesheet">
-
 </head>
-
 <body id="page-top">
-    
-    <!-- End of Topbar -->
-        @RenderBody()
-    <!-- Footer -->
-        
-    <!-- End of Footer -->
-    <!-- Scroll to Top Button-->
-    
+    @RenderBody()
     <!-- Bootstrap core JavaScript-->
     <script src="~/adminPanel/vendor/jquery/jquery.min.js"></script>
     <script src="~/adminPanel/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
-
     <!-- Core plugin JavaScript-->
     <script src="~/adminPanel/vendor/jquery-easing/jquery.easing.min.js"></script>
-
     <!-- Custom scripts for all pages-->
     <script src="~/adminPanel/js/sb-admin-2.min.js"></script>
-
     <!-- Page level plugins -->
     <script src="~/adminPanel/vendor/chart.js/Chart.min.js"></script>
-
     <!-- Page level custom scripts -->
     <script src="~/adminPanel/js/demo/chart-area-demo.js"></script>
     <script src="~/adminPanel/js/demo/chart-pie-demo.js"></script>
@@ -81,12 +60,4 @@
     @await Component.InvokeAsync("Notyf")
     @await RenderSectionAsync("Scripts", required: false)
 </body>
-
 </html>
-
-<body>
-    <!-- Navigation-->
-    
-    <!-- Main Content-->
-    @RenderBody()
-</body>

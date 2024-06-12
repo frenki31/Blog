@@ -13,7 +13,7 @@ namespace BeReal.ViewModels
         public DateTime publicationDate { get; set; }
         public string? Image { get; set; }
         public bool Approved { get; set; }
-        public Document? Document { get; set; }
-        public List<Comment>? Comments { get; set; }
+        public BR_Document? Document { get; set; }
+        public List<BR_Comment>? Comments { get; set; }
     }
 }

@@ -1,9 +1,9 @@
 ﻿@model BeReal.ViewModels.UserViewModel
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> userManager
+@inject UserManager<BR_ApplicationUser> userManager
 @{
     ViewData["Title"] = "Profile";
-    var authUser = new ApplicationUser();
+    var authUser = new BR_ApplicationUser();
     authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
 }
 @{
@@ -20,8 +20,8 @@
                     {
                         @if (authUser!.UserName == Model.Username)
                         {
-                            <a asp-action="EditProfile" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-primary">Edit Profile</a>
-                            <a asp-action="ResetUserPassword" asp-controller="User" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
+                            <a asp-action="EditProfile" asp-controller="Profile" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-primary">Edit Profile</a>
+                            <a asp-action="ResetUserPassword" asp-controller="Profile" asp-area="Admin" asp-route-id="@authUser!.Id" class="btn btn-secondary">Reset Password</a>
                         }
                     }
                 </div>
@@ -61,9 +61,3 @@
 @{
     await Html.RenderPartialAsync("_Footer");
 }
-
-
-
-
-
-

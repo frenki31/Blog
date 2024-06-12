@@ -7,9 +7,9 @@ namespace BeReal.Utilities
     public class DbInitializer : IDbInitializer
     {
         private readonly ApplicationDbContext _context;
-        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly UserManager<BR_ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
-        public DbInitializer(ApplicationDbContext context, UserManager<ApplicationUser> userManager,
+        public DbInitializer(ApplicationDbContext context, UserManager<BR_ApplicationUser> userManager,
             RoleManager<IdentityRole> roleManager)
         {
             _context = context;
@@ -27,7 +27,7 @@ namespace BeReal.Utilities
                 }
                 if (!_context.Users.Any(x => x.UserName == "admin"))
                 {
-                    var admin = new ApplicationUser()
+                    var admin = new BR_ApplicationUser()
                     {
                         UserName = "admin",
                         Email = "admin@gmail.com",

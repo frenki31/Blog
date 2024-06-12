@@ -1,6 +1,6 @@
 ﻿@model BeReal.ViewModels.ProfileViewModel
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> userManager
+@inject UserManager<BR_ApplicationUser> userManager
 @{
     ViewData["Title"] = "Edit Profile";
     var authUser = userManager.Users.FirstOrDefault(user => user.UserName == User.Identity!.Name);
@@ -57,4 +57,3 @@
         </div>
     </div>
 </div>
-

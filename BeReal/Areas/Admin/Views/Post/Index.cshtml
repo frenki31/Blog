@@ -2,10 +2,10 @@
 @using X.PagedList.Mvc.Core
 @model IPagedList<BeReal.ViewModels.PostViewModel>
 @using Microsoft.AspNetCore.Identity
-@inject UserManager<ApplicationUser> userManager;
+@inject UserManager<BR_ApplicationUser> userManager;
 @{
     ViewData["Title"] = "Posts";
-    var authUser = new ApplicationUser();
+    var authUser = new BR_ApplicationUser();
     authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
     var authUserRole = await userManager.GetRolesAsync(authUser!);
 }
@@ -26,14 +26,10 @@
                 <div class="rounded mb-4 bg-white p-4">
                     <div class="row">
                         <div class="col-2 d-flex justify-content-center flex-column">
-                            @if (post.Image == null)
-                            {
-                                <img class="img-fluid" src="~/images/default_image.png" style="object-fit:cover; height:100%; width:100%" />
+                            @{
+                                string image = post.Image == null ? "default_image.png" : post.Image;
                             }
-                            else
-                            {
-                                <img class="img-fluid" src="~/images/@post.Image" style="object-fit:cover; height:100%; width:100%" />
-                            }
+                            <img class="img-fluid" src="~/images/@image" style="object-fit:cover; height:100%; width:100%" />
                         </div>
                         <div class="col-5 d-flex justify-content-center flex-column">
                             <h4 class="text-primary fw-bold" style="font-size: 1.5rem; font-weight: bolder">@post.Title</h4>
@@ -46,30 +42,25 @@
                                 <span>Comments: <b>@post.Comments!.Count</b></span>
                             </div>
                             <div>
-                                @if (post.Approved == false)
-                                {
-                                    <i class="fa-regular fa-thumbs-down"></i>
-                                    <span>Status: <b>Not Approved</b></span>
+                                @{
+                                    string thumbsClass = post.Approved == false ? "down" : "up";
+                                    string status = post.Approved == false ? "Not Approved" : "Approved";
                                 }
-                                else
-                                {
-                                    <i class="fa-regular fa-thumbs-up"></i>
-                                    <span>Status: <b>Approved</b></span>
-                                }
+                                <i class="fa-regular fa-thumbs-@thumbsClass"></i>
+                                <span>Status: <b>@status</b></span>
                             </div>
                             <div>
+                                <i class="fa-regular fa-file"></i>
                                 @if (post.Document != null)
                                 {
-                                    <i class="fa-regular fa-file"></i>
                                     <span>Document: <b>@post.Document.FileName</b>
-                                        <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.Id">
+                                        <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.IDBR_Document">
                                             <input type="submit" class="btn btn-primary" value="Download"/>
                                         </form>
                                     </span>
                                 }
                                 else
                                 {
-                                    <i class="fa-regular fa-file"></i>
                                     <span>Document: <b>Not Found</b></span>
                                 }
                             </div>
@@ -102,13 +93,11 @@
             Page @(Model?.PageCount < Model?.PageNumber ? 0 : Model!.PageNumber) of @Model.PageCount
             @Html.PagedListPager(Model, page => Url.Action("Index",
                      new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }),
-                     new PagedListRenderOptions()
-            {
+                     new PagedListRenderOptions() {
                 ContainerDivClasses = new List<string> { "d-flex justify-content-start mb-4" },
                 UlElementClasses = new List<string> { "pagination" },
                 LiElementClasses = new List<string> { "btn btn-primary mx-1 text-uppercase" },
-                ActiveLiElementClass = "active",
-            })
+                ActiveLiElementClass = "active", })
         </div>
     </div>
 </div>

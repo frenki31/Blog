@@ -35,14 +35,10 @@
                     </div>
                     <div class="col-3">
                         <div class="mb-2">
-                            @if (Model.ImageUrl == null)
-                            {
-                                <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
+                            @{
+                                string image = Model.ImageUrl == null ? "default_image.png" : Model.ImageUrl;
                             }
-                            else
-                            {
-                                <img src="~/images/Model.ImageUrl" class="img-fluid" id="thumbnail">
-                            }
+                            <img src="~/images/@image" class="img-fluid" id="thumbnail">
                         </div>
                         <div class="mb-2">
                             <label>Image</label>

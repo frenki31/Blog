@@ -1,8 +1,11 @@
-﻿namespace BeReal.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace BeReal.Models
 {
-    public class Page
+    public class BR_Page
     {
-        public int Id { get; set; }
+        [Key]
+        public int IDBR_Page { get; set; }
         public string? Title { get; set; }
         public string? ShortDescription { get; set; }
         public string? Description { get; set; }

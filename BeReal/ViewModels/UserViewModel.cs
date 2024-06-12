@@ -11,6 +11,6 @@ namespace BeReal.ViewModels
         public string? Role { get; set; }
         public int? NumberPosts { get; set; }
         public int? NumberComments { get; set; }
-        public List<Post>? Posts { get; set; }
+        public List<BR_Post>? Posts { get; set; }
     }
 }

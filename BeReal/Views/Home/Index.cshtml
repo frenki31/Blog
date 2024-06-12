@@ -3,37 +3,11 @@
     ViewData["Title"] = "Home Page";
     ViewData["Description"] = "A blogging website";
     ViewData["Keywords"] = "blog travel sports programming photography";
-    string imageUrl = "";
-    if (Model.ImageUrl != null)
-    {
-        imageUrl = "/images/" + Model.ImageUrl;
-    }
-    else
-    {
-        imageUrl = "/blog/assets/img/home-bg.jpg";
-    }
 }
 @{
     await Html.RenderPartialAsync("_Navbar");
+    await Html.RenderPartialAsync("_HomeHeader");
 }
-<!-- Page Header-->
-<header class="masthead" style="background-image: url('@imageUrl')">
-    <div class="container position-relative px-4 px-lg-5">
-        <div class="row gx-4 gx-lg-5 justify-content-center">
-            <div class="col-md-10 col-lg-8 col-xl-7">
-                <div class="site-heading">
-                    <h1>@Model.Title</h1>
-                    <span class="subheading">@Model.ShortDescription</span>
-                    <form asp-controller="Home" asp-action="Index" class="form-horizontal mt-4">
-                        <div class="input-group mb-3">
-                            <input asp-for="Search" type="text" placeholder="Search for a post..." class="form-control" />
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</header>
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
         <div class="col-md-10 col-lg-8 col-xl-7 ">
@@ -43,9 +17,7 @@
                     <span class="input-group-text bg-secondary text-white">to</span>
                     <input asp-for="EndDate" class="date-picker form-control" placeholder="End date" />
                     <div class="input-group-inline">
-                        <button type="submit" class="btn btn-outline-secondary">
-                            Search
-                        </button>
+                        <input type="submit" class="btn btn-outline-secondary" value="Search"/>
                     </div>
                 </div>
             </form>
@@ -67,14 +39,14 @@
                             </a>
                             <p class="post-meta">
                                 Posted by
-                                <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.User!.Id">@post.Author</a>
-                                on @post.publicationDate.ToShortDateString()
+                                <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.ApplicationUser!.Id">@post.Author</a>
+                                on @post.PublicationDate.ToString("dd-MM-yyyy")
                             </p>
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">Read More...</a>
 
                             @if (post.Document != null)
                             {
-                                <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.Id">
+                                <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.IDBR_Document">
                                     <input type="submit" class="btn btn-primary" value="Download" />
                                 </form>
                             }
@@ -86,10 +58,8 @@
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
                                 <img class="img-fluid" src="~/images/@Image" style="object-fit:cover; height:100%; width:100%" />
                             </a>
-                            
                         </div>
                     </div>
-                    
                 </div>
                 <hr class="my-4" />
             }
@@ -108,9 +78,7 @@
                     {
                         if (page == -1)
                         {
-                            <span class="btn btn-outline-secondary">
-                            ...
-                            </span>
+                            <span class="btn btn-outline-secondary">...</span>
                         }
                         else
                         {
@@ -136,4 +104,3 @@
 @{
     await Html.RenderPartialAsync("_Footer");
 }
-

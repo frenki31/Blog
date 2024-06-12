@@ -1,7 +1,7 @@
 ﻿@using Microsoft.AspNetCore.Identity;
-@inject UserManager<ApplicationUser> userManager;
+@inject UserManager<BR_ApplicationUser> userManager;
 @{
-    var authUser = new ApplicationUser();
+    var authUser = new BR_ApplicationUser();
     authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
 }
 <nav class="navbar navbar-expand-lg navbar-light position-sticky" id="mainNav">

@@ -1,7 +1,7 @@
 ﻿using BeReal.Models;
 using BeReal.ViewModels;
 using Microsoft.EntityFrameworkCore;
-namespace BeReal.Data.Repository
+namespace BeReal.Data.Repository.Files
 {
     public class FileManager : IFileManager
     {
@@ -22,31 +22,20 @@ namespace BeReal.Data.Repository
             }
             else
             {
-                int mid = PageNumber;
-                if (mid < 3)
-                    mid = 3;
-                else if (mid > PageCount)
-                    mid = PageCount - 2;
-
+                int mid = PageNumber < 3 ? 3 : PageNumber > PageCount ? PageCount - 2 : PageNumber;
                 for (int i = mid - 2; i <= mid + 2; i++)
-                {
                     pages.Add(i);
-                }
                 if (pages[0] != 1)
                 {
                     pages.Insert(0, 1);
                     if (pages[1] - pages[0] > 1)
-                    {
                         pages.Insert(1, -1);
-                    }
                 }
                 if (pages[pages.Count - 1] != PageCount)
                 {
                     pages.Insert(pages.Count, PageCount);
                     if (pages[pages.Count - 1] - pages[pages.Count - 2] > 1)
-                    {
                         pages.Insert(pages.Count - 1, -1);
-                    }
                 }
             }
             return pages;
@@ -59,7 +48,7 @@ namespace BeReal.Data.Repository
             var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf('.'));
             var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
             var filePath = Path.Combine(folderPath, uniqueFileName);
-            using (FileStream fileStream = System.IO.File.Create(filePath))
+            using (FileStream fileStream = File.Create(filePath))
             {
                 formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
             }
@@ -70,8 +59,8 @@ namespace BeReal.Data.Repository
             try
             {
                 var file = Path.Combine(_imagePath, image);
-                if (System.IO.File.Exists(file))
-                    System.IO.File.Delete(file);
+                if (File.Exists(file))
+                    File.Delete(file);
                 return true;
             }
             catch (Exception ex)
@@ -80,7 +69,7 @@ namespace BeReal.Data.Repository
                 return false;
             }
         }
-        public async Task<Document> GetFileInfo(CreatePostViewModel vm)
+        public async Task<BR_Document> GetFileInfo(CreatePostViewModel vm)
         {
             List<string> suffixes = new List<string> { ".pdf", ".docx", ".xlsx", ".csv" };
             string suffix = vm.File!.UploadedFile!.FileName.Substring(vm.File.UploadedFile.FileName.LastIndexOf('.'));
@@ -91,12 +80,12 @@ namespace BeReal.Data.Repository
                 using (var memoryStream = new MemoryStream())
                 {
                     await vm.File.UploadedFile.CopyToAsync(memoryStream);
-                    return new Document { Id = vm.File!.Id, FileName = fileName, ContentType = contentType, Data = memoryStream.ToArray() };
+                    return new BR_Document { IDBR_Document = vm.File!.Id, FileName = fileName, ContentType = contentType, Data = memoryStream.ToArray() };
                 }
             }
-            return new Document { };
+            return new BR_Document { };
         }
-        public void AddFile(Document file) => _context.Files.Add(file);
-        public async Task<Document?> GetFileById(int? id) => await _context.Files.FirstOrDefaultAsync(f => f.Id == id);
+        public void AddFile(BR_Document file) => _context.Files.Add(file);
+        public async Task<BR_Document?> GetFileById(int? id) => await _context.Files.FirstOrDefaultAsync(f => f.IDBR_Document == id);
     }
 }

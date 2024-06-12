@@ -10,10 +10,10 @@ namespace BeReal.Data
             :base(options)
         {
         }
-        public DbSet<ApplicationUser> ApplicationUsers { get; set; }
-        public DbSet<Post> Posts { get; set; }
-        public DbSet<Page> Pages { get; set; }  
-        public DbSet<Comment> Comments { get; set; }
-        public DbSet<Document> Files { get; set; }
+        public DbSet<BR_ApplicationUser> ApplicationUsers { get; set; }
+        public DbSet<BR_Post> Posts { get; set; }
+        public DbSet<BR_Page> Pages { get; set; }  
+        public DbSet<BR_Comment> Comments { get; set; }
+        public DbSet<BR_Document> Files { get; set; }
     }
 }
