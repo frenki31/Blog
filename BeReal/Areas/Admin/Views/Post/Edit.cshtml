@@ -1,12 +1,10 @@
-﻿@model BeReal.ViewModels.CreatePostViewModel
+﻿@model CreatePostViewModel
 @{
     ViewData["Title"] = "Edit Post";
-}
-@{
     await Html.RenderPartialAsync("_Navbar");
 }
 <div class="container-fluid">
-    <a class="btn btn-primary mb-1" asp-action="Index" asp-controller="Post">Back</a>
+    <a class="btn btn-primary mb-1" asp-action="Index" asp-controller="Post"><i class="fa-solid fa-arrow-left"></i></a>
     <div class="card">
         <div class="card-header bg-primary">
             <h4 class="card-title text-white">Edit Post</h4>

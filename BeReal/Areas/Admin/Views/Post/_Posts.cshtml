@@ -1,0 +1,106 @@
+﻿@model IPagedList<PostViewModel>
+@inject IUsersOperations userOperations;
+@{
+    var authUser = await userOperations.GetLoggedUser(User);
+    var authUserRole = await userOperations.GetUserRole(authUser);
+}
+<div class="card-body" style="background-color:lightgray">
+    @foreach (var post in Model)
+    {
+        <div class="rounded mb-4 bg-white p-4">
+            <div class="row">
+                <div class="col-lg-2 col-md-3 d-flex justify-content-center flex-column">
+                    @{
+                        string image = post.Image == null ? "default_image.png" : post.Image;
+                    }
+                    <img class="img-fluid d-none d-md-block" src="~/images/@image" style="object-fit:cover; height:100%; width:100%" />
+                </div>
+                <div class="col-lg-5 col-md-4 d-flex justify-content-center flex-column">
+                    <h4 class="text-primary fw-bold" style="font-size: 1.5rem; font-weight: bolder">@post.Title</h4>
+                    <div>
+                        <i class="fa-regular fa-calendar"></i>
+                        <span>Last updated: <b>@post.publicationDate</b></span>
+                    </div>
+                    <div>
+                        <i class="fa-regular fa-comment"></i>
+                        <span>Comments: <b>@post.Comments!.Count</b></span>
+                    </div>
+                    <div>
+                        @{
+                            string thumbsClass = post.Approved == false ? "down" : "up";
+                            string status = post.Approved == false ? "Not Approved" : "Approved";
+                        }
+                        <i class="fa-regular fa-thumbs-@thumbsClass"></i>
+                        <span>Status: <b>@status</b></span>
+                    </div>
+                    <div>
+                        <i class="fa-regular fa-file"></i>
+                        @if (post.Document != null)
+                        {
+                            <span>
+                                Document: <b>@post.Document.FileName</b>
+                                <form method="post" asp-action="Download" asp-controller="Post" asp-route-id="@post.Document.IDBR_Document">
+                                    <button type="submit" class="btn btn-primary"><i class="fa-solid fa-download"></i></button>
+                                </form>
+                            </span>
+                        }
+                        else
+                        {
+                            <span>Document: <b>Not Found</b></span>
+                        }
+                    </div>
+                </div>
+                <div class="col-lg-5 col-md-5 text-right d-flex justify-content-center flex-column">
+                    <div class="d-flex justify-content-end">
+                        <h4 class="fw-bold align-top" style="font-size: 1rem">@post.Author</h4>
+                    </div>
+                    <div class="d-flex justify-content-end align-items-center">
+                        <a class="btn btn-warning" asp-action="Edit" asp-controller="Post" asp-area="Admin" asp-route-id="@post.Id"><i class="fa-solid fa-pen-to-square"></i></a> |
+                        <a class="btn btn-danger" href="#" data-toggle="modal" data-target="#deleteModal">
+                            <i class="fa-solid fa-trash"></i>
+                        </a>
+                        <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog" role="document">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="exampleModalLabel">Do you want to delete the post?</h5>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                                        <form asp-action="Delete" asp-controller="Post" asp-area="Admin" asp-route-id="@post.Id" method="post">
+                                            <button type="submit" class="btn btn-danger">
+                                                Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @if (authUserRole[0] == "Admin")
+                        {
+                            if (post.Approved == false)
+                            {
+                                <form asp-action="Approve" asp-controller="Post" asp-area="Admin" asp-route-id="@post.Id" method="post">
+                                    |<button type="submit" class="btn btn-secondary"><i class="fa-solid fa-thumbs-up"></i></button>
+                                </form>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+<div class="card-footer">
+    Page @(Model?.PageCount < Model?.PageNumber ? 0 : Model!.PageNumber) of @Model.PageCount
+    @Html.PagedListPager(Model, page => Url.Action("Index",
+            new { page, sortOrder = ViewBag.CurrentSort, currentFilter = ViewBag.CurrentFilter }),
+            new PagedListRenderOptions()
+    {
+        ContainerDivClasses = new List<string> { "d-flex justify-content-start mb-4" },
+        UlElementClasses = new List<string> { "pagination" },
+        LiElementClasses = new List<string> { "btn btn-primary mx-1 text-uppercase" },
+        ActiveLiElementClass = "active",
+    })
+</div>

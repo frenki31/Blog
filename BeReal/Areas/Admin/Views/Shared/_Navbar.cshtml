@@ -1,8 +1,6 @@
-﻿@using Microsoft.AspNetCore.Identity;
-@inject UserManager<BR_ApplicationUser> userManager;
+﻿@inject IUsersOperations userOperations;
 @{
-    var authUser = new BR_ApplicationUser();
-    authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
+    var authUser = await userOperations.GetLoggedUser(User);
 }
 <nav class="navbar navbar-expand-lg navbar-light position-sticky" id="mainNav">
     <div class="container px-4 px-lg-5">
@@ -72,12 +70,10 @@
                                 Profile
                             </a>
                             <div class="dropdown-divider"></div>
-                            <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post">
-                                <button type="submit" class="dropdown-item">
-                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
-                                    Logout
-                                </button>
-                            </form>
+                            <a class="dropdown-item" href="#" data-toggle="modal" data-target="#logoutModal">
+                                <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                Logout
+                            </a>
                         </div>
                     </li>
                 }
@@ -85,3 +81,22 @@
         </div>
     </div>
 </nav>
+<!-- Logout Modal-->
+<div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
+                <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post">
+                    <button type="submit" class="btn btn-primary">
+                        Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

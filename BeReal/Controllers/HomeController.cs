@@ -29,15 +29,13 @@ namespace BeReal.Controllers
                 return RedirectToAction("Index", new { page = 1, search, category, startDate, endDate });
             var home = await _pagesOperations.GetPage("home");
             var query = _postsOperations.GetFilteredPosts(category, search, startDate, endDate);
-            int postCount = query.Count();
             int pageSize = 5;
             int skip = pageSize * (page - 1);
+            int postCount = query.Count();
             int pageCount = (int)Math.Ceiling((double)postCount / pageSize);
             var viewModel = new HomeViewModel()
             {
-                Title = home!.Title,
-                ShortDescription = home.ShortDescription,
-                ImageUrl = home.ImageUrl,
+                Page = _pagesOperations.GetPageViewModel(home!),
                 Category = category,
                 Search = search,
                 StartDate = startDate,
@@ -45,7 +43,7 @@ namespace BeReal.Controllers
                 PageNumber = page,
                 NextPage = postCount > skip + pageSize,
                 PageCount = pageCount,
-                Posts = query.Skip(skip).Take(pageSize).ToList(),
+                Posts = await _postsOperations.GetPostsWithPagination(query,skip,pageSize),
                 Pages = _fileManager.Pages(page, pageCount),
             };
             return View(viewModel);

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<BeReal.ViewModels.UserViewModel>
+﻿@model IEnumerable<UserViewModel>
 @{
     ViewData["Title"] = "Users";
 }                
@@ -6,7 +6,7 @@
     await Html.RenderPartialAsync("_Navbar");
 }
 <div class="container-fluid">
-    <a class="btn btn-primary mb-1" asp-action="Register" asp-controller="User">Add User</a>
+    <a class="btn btn-primary mb-1" asp-action="Register" asp-controller="User"><i class="fa-solid fa-plus"></i></a>
     <div class="card">
         <div class="card-header bg-primary">
             <h4 class="card-title text-white">
@@ -14,40 +14,42 @@
             </h4>
         </div>
         <div class="card-body">
-            <table class="table table-stripped table-hover" id="userTable">
-                <thead>
-                    <tr>
-                        <th>First Name</th>
-                        <th>Last Name</th>
-                        <th>Username</th>
-                        <th>Email</th>
-                        <th>Role</th>
-                        <th>Posts</th>
-                        <th>Comments</th>
-                        <th>Change</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var user in Model.Where(u => u.Username != User.Identity!.Name))
-                    {
+            <div class="table-responsive">
+                <table class="table table-stripped table-hover" id="userTable">
+                    <thead>
                         <tr>
-                            <td>@user.FirstName</td>
-                            <td>@user.LastName</td>
-                            <td>@user.Username</td>
-                            <td>@user.Email</td>
-                            <td>@user.Role</td>
-                            <td>@user.NumberPosts</td>
-                            <td>@user.NumberComments</td>
-                            <td class="d-flex justify-content-start align-items-center">
-                                <a class="btn btn-primary" asp-action="ResetPassword" asp-controller="User" asp-route-id="@user.Id">Password</a> | 
-                                <form asp-action="ChangeRole" asp-controller="User" asp-route-id="@user.Id" method="post">
-                                    <button class="btn btn-secondary" type="submit">Role</button>
-                                </form>
-                            </td>
+                            <th>First Name</th>
+                            <th>Last Name</th>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Role</th>
+                            <th>Posts</th>
+                            <th>Comments</th>
+                            <th>Change</th>
                         </tr>
-                    }
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        @foreach (var user in Model.Where(u => u.Username != User.Identity!.Name))
+                        {
+                            <tr>
+                                <td>@user.FirstName</td>
+                                <td>@user.LastName</td>
+                                <td>@user.Username</td>
+                                <td>@user.Email</td>
+                                <td>@user.Role</td>
+                                <td>@user.NumberPosts</td>
+                                <td>@user.NumberComments</td>
+                                <td class="d-flex justify-content-start align-items-center">
+                                    <a class="btn btn-primary" asp-action="ResetPassword" asp-controller="User" asp-route-id="@user.Id">Password</a> |
+                                    <form asp-action="ChangeRole" asp-controller="User" asp-route-id="@user.Id" method="post">
+                                        <button class="btn btn-secondary" type="submit">Role</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

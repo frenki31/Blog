@@ -21,6 +21,7 @@ namespace BeReal.Data.Repository.Posts
         int GetPostCount(string id);
         CreatePostViewModel GetEditViewModel(BR_Post post);
         Task<BR_Post> GetPostValues(BR_Post post, CreatePostViewModel model, BR_ApplicationUser user, IUsersOperations _usersOperations);
+        Task<List<BR_Post>> GetPostsWithPagination(IQueryable<BR_Post> query, int skip, int pageSize);
         //Save Changes
         Task<bool> SaveChanges();
     }

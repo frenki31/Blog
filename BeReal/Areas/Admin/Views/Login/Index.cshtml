@@ -1,4 +1,4 @@
-﻿@model BeReal.ViewModels.LoginViewModel
+﻿@model LoginViewModel
 @{
     ViewData["Title"] = "Login";
 } 
@@ -18,7 +18,7 @@
                             <div class="text-center">
                                 <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
                             </div>
-                            <form class="user" method="post" asp-action="Login" asp-route-url="@Model.ReturnUrl">
+                            <form class="user" method="post" asp-action="Index" asp-route-url="@Model.ReturnUrl">
                                 <input asp-for="@Model.ReturnUrl" hidden />
 
                                 <div class="form-group row mb-2">

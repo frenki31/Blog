@@ -1,13 +1,5 @@
-﻿@using BeReal.Data
-@using BeReal.ViewModels
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<BR_ApplicationUser> userManager
-@{
-    var authUser = new BR_ApplicationUser();
-    authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
-}
-<!DOCTYPE html>
-<html lang="en">
+﻿<!DOCTYPE html>
+<html lang="en"> 
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />

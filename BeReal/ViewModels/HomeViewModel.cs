@@ -3,9 +3,7 @@ namespace BeReal.ViewModels
 {
     public class HomeViewModel
     {
-        public string? Title { get; set; }
-        public string? ImageUrl { get; set; }
-        public string? ShortDescription { get; set; }
+        public PageViewModel? Page { get; set; }
         public IEnumerable<BR_Post>? Posts { get; set; }
         public string? Search {  get; set; }
         public string? Category { get; set; }

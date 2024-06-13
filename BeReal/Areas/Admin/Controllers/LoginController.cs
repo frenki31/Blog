@@ -20,7 +20,7 @@ namespace BeReal.Areas.Admin.Controllers
             _usersOperations = usersOperations;
         }
         [HttpGet("Login")]
-        public IActionResult Login(string url)
+        public IActionResult Index(string url)
         {
             if (!HttpContext.User.Identity!.IsAuthenticated)
             {
@@ -33,7 +33,7 @@ namespace BeReal.Areas.Admin.Controllers
             return RedirectToAction(nameof(Index), "Post", new { area = "Admin" });
         }
         [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginViewModel lvm)
+        public async Task<IActionResult> Index(LoginViewModel lvm)
         {
             if (!ModelState.IsValid) return View(lvm);
             var username = await _usersOperations.GetUserByUsername(lvm.Username!);

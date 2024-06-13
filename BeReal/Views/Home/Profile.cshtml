@@ -1,12 +1,8 @@
-﻿@model BeReal.ViewModels.UserViewModel
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<BR_ApplicationUser> userManager
+﻿@model UserViewModel
+@inject IUsersOperations userOperations;
 @{
-    ViewData["Title"] = "Profile";
-    var authUser = new BR_ApplicationUser();
-    authUser = userManager.Users.FirstOrDefault(X => X.UserName == User.Identity!.Name);
-}
-@{
+    ViewData["Title"] = "Profile"; 
+    var authUser = await userOperations.GetLoggedUser(User);
     await Html.RenderPartialAsync("_Navbar");
 }
 <!-- Page Header-->

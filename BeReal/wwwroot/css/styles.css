@@ -1,13 +1,72 @@
-﻿@media screen and (max-width: 1207px) {
-        .post-preview .row .col-lg-5 a{
-            display: none;
-        }
+﻿.transparent-form {
+    background: transparent;
 }
+    .transparent-form .form-control {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        border-bottom: 1px solid white;
+        color: white;
+    }
+    .transparent-form .date-picker {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        border-bottom: 1px solid black;
+        color: black;
+    }
+    .transparent-form .input-group-text {
+        background: transparent;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        border-bottom: 1px solid black;
+        color: black;
+    }
+    .transparent-form .input-group-append {
+        border-bottom: 1px solid black;
+    }
+        .transparent-form .input-group-append:hover {
+            background-color: #f8f9fa;
+        }
+        .transparent-form .form-control::placeholder {
+            color: white;
+        }
+        .transparent-form .date-picker::placeholder {
+            color:black;
+        }
 
-@media screen and (max-width: 768px) {
-    .btn-small {
-        padding: 5px 10px;
-        font-size: 14px;
+@media (max-width: 992px) { /* For md screens and below */
+    h2 {
+        font-size: 1.8rem;
+    }
+    h4 {
+        font-size: 1.5rem;
+    }
+    p {
+        font-size: 1.5rem;
     }
 }
+
+@media (max-width: 768px) { /* For sm screens and below */
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    h4 {
+        font-size: 1.2rem;
+    }
+    p {
+        font-size: 1.2rem;
+    }
+    .btn-small {
+        padding: 5px 10px;
+        font-size: 1.2rem;
+    }
+}
+
+
+
 

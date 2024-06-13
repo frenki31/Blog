@@ -1,4 +1,4 @@
-﻿@model BeReal.ViewModels.HomeViewModel
+﻿@model HomeViewModel
 @{
     ViewData["Title"] = "Home Page";
     ViewData["Description"] = "A blogging website";
@@ -12,23 +12,30 @@
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
         <div class="col-md-10 col-lg-8 col-xl-7 ">
-            <form asp-controller="Home" asp-action="Index" class="form-horizontal m-auto">
+            <form asp-controller="Home" asp-action="Index" class="form-horizontal m-auto transparent-form">
                 <div class="input-group input-group-sm">
-                    <input asp-for="StartDate" class="date-picker form-control" placeholder="Start date"/>
-                    <span class="input-group-text bg-secondary text-white">to</span>
-                    <input asp-for="EndDate" class="date-picker form-control" placeholder="End date" />
-                    <div class="input-group-inline">
-                        <input type="submit" class="btn btn-outline-secondary" value="Search"/>
+                    <input asp-for="StartDate" type="date" class="date-picker form-control"/>
+                    <span class="input-group-text"><b><i class="fa-solid fa-arrow-right"></i></b></span>
+                    <input asp-for="EndDate" type="date" class="date-picker form-control"/>
+                    <div class="input-group-append">
+                        <button type="submit" class="btn btn-default"><i class="fa-solid fa-search"></i></button> 
                     </div>
                 </div>
             </form>
-            <form asp-controller="Home" asp-action="Index" class="d-flex flex-row justify-content-center align-items-center flex-nowrap">
-                <input asp-route-catergory="" type="submit" value="All" class="btn btn-default btn-small m-1" />
-                <input asp-route-category="Programming" type="submit" value="Programming" class="btn btn-default btn-small m-1" />
-                <input asp-route-category="Travel" type="submit" value="Travel" class="btn btn-default btn-small m-1" />
-                <input asp-route-category="Sports" type="submit" value="Sports" class="btn btn-default btn-small m-1" />
-                <input asp-route-category="Lifestyle" type="submit" value="Lifestyle" class="btn btn-default btn-small m-1" />
-            </form>
+            <div class="d-flex flex-row justify-content-center align-items-center flex-nowrap">
+                @{
+                    var categories = new List<string>() { "", "Programming", "Travel", "Sports", "Lifestyle" };
+                }
+                @foreach (string category in categories)
+                {
+                    string value = category.Equals("") ? "All" : category;
+                    <form asp-controller="Home" asp-action="Index" method="get">
+                        <input type="hidden" asp-for="Category" value="@category" />
+                        <input type="submit" value="@value" class="btn btn-default btn-small m-1" />
+                    </form>
+                }
+            </div>
+            <hr />
             @foreach (var post in Model.Posts!)
             {
                 <div class="post-preview">
@@ -57,7 +64,7 @@
                                 string Image = post.Image == null ? "default_image.png" : post.Image;
                             }
                             <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
-                                <img class="img-fluid" src="~/images/@Image" />
+                                <img class="img-fluid d-none d-lg-block" src="~/images/@Image" />
                             </a>
                         </div>
                     </div>

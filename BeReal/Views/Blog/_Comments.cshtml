@@ -1,11 +1,9 @@
 ﻿@model BlogPostViewModel
-@using Microsoft.AspNetCore.Identity
-@inject UserManager<BR_ApplicationUser> userManager;
+@inject IUsersOperations userOperations;
 @{
-    var authUser = new BR_ApplicationUser();
-    authUser = userManager.Users.FirstOrDefault(x => x.UserName == User.Identity!.Name);
+    var authUser = await userOperations.GetLoggedUser(User);
 }
-<h3 class="mb-5">
+<h3 class="mb-5"> 
     @{
         string number = Model.Post!.Comments!.Count() != 1 ? $"{Model.Post.Comments!.Count()} Comments" : "1 Comment";
     }
@@ -23,7 +21,7 @@
                         <p class="comment-message">@comment.Message</p>
                         @if (!User.Identity!.IsAuthenticated)
                         {
-                            <a class="btn btn-default" asp-action="Login" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to reply</a>
+                            <a class="btn btn-default" asp-action="Index" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to reply</a>
                         }
                         else
                         {
@@ -101,5 +99,5 @@
 }
 else
 {
-    <a class="btn btn-default" asp-action="Login" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to comment</a>
+    <a class="btn btn-default" asp-action="Index" asp-controller="Login" asp-area="Admin" asp-route-url="@Model.ReturnUrl">Login to comment</a>
 }

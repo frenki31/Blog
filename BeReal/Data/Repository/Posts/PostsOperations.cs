@@ -22,7 +22,7 @@ namespace BeReal.Data.Repository.Posts
                          .OrderByDescending(x => x.PublicationDate)
                          .Where(x => x.Approved == true);
             //filter by category
-            query = string.IsNullOrEmpty(category) ? query : query.Where(post => post.Category!.ToLower().Equals(category.ToLower()));
+            query = string.IsNullOrEmpty(category) ? query : query.Where(post => post.Category!.Contains(category));
             //filter by searchword
             query = string.IsNullOrEmpty(search) ? query : query.Where(x => x.Title!.Contains(search) || x.Author!.Contains(search) ||
                                                                        x.ShortDescription!.Contains(search) || x.Description!.Contains(search));
@@ -90,5 +90,6 @@ namespace BeReal.Data.Repository.Posts
             post.Approved = userRole[0] == Roles.Admin;
             return post;
         }
+        public async Task<List<BR_Post>> GetPostsWithPagination(IQueryable<BR_Post> query, int skip, int pageSize) => await query.Skip(skip).Take(pageSize).ToListAsync();
     }
 }
