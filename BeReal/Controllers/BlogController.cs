@@ -28,7 +28,7 @@ namespace BeReal.Controllers
         {
             if (slug == "") 
                 return View(); 
-            var post = await _postsOperations.getBlogPost(slug);
+            var post = await _postsOperations.GetBlogPost(slug);
             if (post == null) 
                 return View(); 
             var vm = new BlogPostViewModel()
@@ -44,7 +44,7 @@ namespace BeReal.Controllers
         {
             if (vm.Post is null || vm.Comment is null) 
                 return RedirectToAction("Index", "Home"); 
-            var post = await _postsOperations.getPostById(vm.Post.IDBR_Post);
+            var post = await _postsOperations.GetPostById(vm.Post.IDBR_Post);
             if (post == null) 
                 return NotFound(); 
             var comment = vm.Comment;
@@ -53,11 +53,11 @@ namespace BeReal.Controllers
             comment.Created = DateTime.Now;
             if (comment.ParentComment != null)
             {
-                var ParComment = await _commentsOperations.getCommentById(comment.ParentComment.IDBR_Comment);
+                var ParComment = await _commentsOperations.GetCommentById(comment.ParentComment.IDBR_Comment);
                 comment.ParentComment = ParComment != null ? ParComment : null;
             }
-            _commentsOperations.addComment(comment);
-            await _commentsOperations.saveChanges();
+            _commentsOperations.AddComment(comment);
+            await _commentsOperations.SaveChanges();
             _notification.Success("Commented");
             return RedirectToAction("Post", new { slug = post.Slug });
         }
@@ -65,16 +65,16 @@ namespace BeReal.Controllers
         [Authorize]
         public async Task<IActionResult> DeleteComment(int id, string slug)
         {
-            var post = await _postsOperations.getPostBySlug(slug);
-            var Comment = await _commentsOperations.getCommentWithReplies(id);
+            var post = await _postsOperations.GetPostBySlug(slug);
+            var Comment = await _commentsOperations.GetCommentWithReplies(id);
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == Comment!.ApplicationUser!.Id)
             {
                 if (Comment!.Replies != null)
-                    _commentsOperations.removeReplies(Comment); 
-                _commentsOperations.removeComment(Comment);
-                await _commentsOperations.saveChanges();
+                    _commentsOperations.RemoveReplies(Comment); 
+                _commentsOperations.RemoveComment(Comment);
+                await _commentsOperations.SaveChanges();
                 _notification.Success("Comment deleted successfully");
                 return RedirectToAction("Post", new { slug = post!.Slug });
             }

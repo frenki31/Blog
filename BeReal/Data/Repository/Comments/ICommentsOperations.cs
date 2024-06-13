@@ -5,13 +5,13 @@ namespace BeReal.Data.Repository.Comments
     public interface ICommentsOperations
     {
         //Comments
-        Task<BR_Comment?> getCommentById(int id);
-        Task<BR_Comment?> getCommentWithReplies(int id);
-        void addComment(BR_Comment comment);
-        void removeReplies(BR_Comment comment);
-        void removeComment(BR_Comment comment);
-        int getCommentCount(string id);
+        Task<BR_Comment?> GetCommentById(int id);
+        Task<BR_Comment?> GetCommentWithReplies(int id);
+        void AddComment(BR_Comment comment);
+        void RemoveReplies(BR_Comment comment);
+        void RemoveComment(BR_Comment comment);
+        int GetCommentCount(string id);
         //Save Changes
-        Task<bool> saveChanges();
+        Task<bool> SaveChanges();
     }
 }

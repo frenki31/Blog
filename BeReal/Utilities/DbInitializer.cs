@@ -59,8 +59,9 @@ namespace BeReal.Utilities
                 foreach (var page in pages)
                 {
                     if (_context.Pages.FirstOrDefault(x => x.Slug == page.Slug) == null)
-                        _context.Pages.Add(page);
+                        _context.Pages.AddRange(page);
                 }
+                _context.SaveChanges();
             }
             catch (Exception ex)
             {

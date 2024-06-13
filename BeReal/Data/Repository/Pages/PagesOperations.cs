@@ -12,7 +12,7 @@ namespace BeReal.Data.Repository.Pages
             _context = context;
         }
         //Pages
-        public async Task<BR_Page?> getPage(string slug) => await _context.Pages.FirstOrDefaultAsync(x => x.Slug == slug);
+        public async Task<BR_Page?> GetPage(string slug) => await _context.Pages.FirstOrDefaultAsync(x => x.Slug == slug);
         public PageViewModel GetPageViewModel(BR_Page page)
         {
             var vm = new PageViewModel()
@@ -38,6 +38,6 @@ namespace BeReal.Data.Repository.Pages
             return page;
         }
         //Save Changes
-        public async Task<bool> saveChanges() => await _context.SaveChangesAsync() > 0;
+        public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() > 0;
     }
 }

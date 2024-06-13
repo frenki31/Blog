@@ -43,8 +43,8 @@ namespace BeReal.Areas.Admin.Controllers
                 var oneUser = await _usersOperations.GetUserById(user.Id!);
                 var role = await _usersOperations.GetUserRole(oneUser!);
                 user.Role = role[0];
-                user.NumberPosts = _postsOperations.getPostCount(oneUser!.Id);
-                user.NumberComments = _commentsOperations.getCommentCount(oneUser.Id);
+                user.NumberPosts = _postsOperations.GetPostCount(oneUser!.Id);
+                user.NumberComments = _commentsOperations.GetCommentCount(oneUser.Id);
             }
             return View(userViewModel);
         }

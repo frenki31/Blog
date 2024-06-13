@@ -1,5 +1,8 @@
-﻿using BeReal.Models;
+﻿using BeReal.Data.Repository.Users;
+using BeReal.Models;
+using BeReal.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using BeReal.Utilities;
 
 namespace BeReal.Data.Repository.Posts
 {
@@ -10,7 +13,7 @@ namespace BeReal.Data.Repository.Posts
             _context = context;
         }
         //Posts
-        public IQueryable<BR_Post> getFilteredPosts(string category, string search, DateTime startDate, DateTime endDate)
+        public IQueryable<BR_Post> GetFilteredPosts(string category, string search, DateTime startDate, DateTime endDate)
         {
             var query = _context.Posts.AsQueryable();
             //order all approved posts by date desc
@@ -38,10 +41,10 @@ namespace BeReal.Data.Repository.Posts
             }
             return query;
         }
-        public async Task<List<BR_Post>> getUserPosts(BR_ApplicationUser user) => await _context.Posts.Where(x => x.ApplicationUser!.Id == user.Id).ToListAsync();
-        public async Task<List<BR_Post>> getAllPosts() => await _context.Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).ToListAsync();
-        public async Task<List<BR_Post>> getPostsOfUser(string id) => await _context.Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Where(x => x.ApplicationUser!.Id == id).ToListAsync();
-        public async Task<BR_Post?> getBlogPost(string slug)
+        public async Task<List<BR_Post>> GetUserPosts(BR_ApplicationUser user) => await _context.Posts.Where(x => x.ApplicationUser!.Id == user.Id).ToListAsync();
+        public async Task<List<BR_Post>> GetAllPosts() => await _context.Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).ToListAsync();
+        public async Task<List<BR_Post>> GetPostsOfUser(string id) => await _context.Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Where(x => x.ApplicationUser!.Id == id).ToListAsync();
+        public async Task<BR_Post?> GetBlogPost(string slug)
         {
             return await _context.Posts.Include(p => p.Comments!)
                                            .ThenInclude(comment => comment.ApplicationUser)
@@ -51,14 +54,41 @@ namespace BeReal.Data.Repository.Posts
                                        .Include(p => p.Document)
                                            .FirstOrDefaultAsync(x => x.Slug == slug);
         }
-        public async Task<BR_Post?> getPostById(int id) => await _context.Posts.FirstOrDefaultAsync(x => x.IDBR_Post == id);
-        public async Task<BR_Post?> getPostWithDocById(int id) => await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.IDBR_Post == id);
-        public async Task<BR_Post?> getPostBySlug(string slug) => await _context.Posts.FirstOrDefaultAsync(p => p.Slug == slug);
-        public void addPost(BR_Post post) => _context.Posts.Add(post);
-        public void removePost(BR_Post post) => _context.Posts.Remove(post);
-        public void updatePost(BR_Post post) => _context.Posts.Update(post);
-        public int getPostCount(string id) => _context.Posts.Where(x => x.ApplicationUser!.Id == id).Count();
+        public async Task<BR_Post?> GetPostById(int id) => await _context.Posts.FirstOrDefaultAsync(x => x.IDBR_Post == id);
+        public async Task<BR_Post?> GetPostWithDocById(int id) => await _context.Posts.Include(x => x.Document).FirstOrDefaultAsync(x => x.IDBR_Post == id);
+        public async Task<BR_Post?> GetPostBySlug(string slug) => await _context.Posts.FirstOrDefaultAsync(p => p.Slug == slug);
+        public void AddPost(BR_Post post) => _context.Posts.Add(post);
+        public void RemovePost(BR_Post post) => _context.Posts.Remove(post);
+        public void UpdatePost(BR_Post post) => _context.Posts.Update(post);
+        public int GetPostCount(string id) => _context.Posts.Where(x => x.ApplicationUser!.Id == id).Count();
         //Save Changes
-        public async Task<bool> saveChanges() => await _context.SaveChangesAsync() > 0;
+        public async Task<bool> SaveChanges() => await _context.SaveChangesAsync() > 0;
+        public CreatePostViewModel GetEditViewModel(BR_Post post)
+        {
+            var edit = new CreatePostViewModel
+            {
+                Id = post.IDBR_Post,
+                Title = post.Title,
+                ShortDescription = post.ShortDescription,
+                Description = post.Description,
+                ImageUrl = post.Image,
+                Category = post.Category,
+                Tags = post.Tags,
+                Approved = post.Approved,
+                File = post.Document != null ? new FileViewModel { Id = post.Document!.IDBR_Document, ContentType = post.Document.ContentType, Name = post.Document.FileName } : null,
+            };
+            return edit;
+        }
+        public async Task<BR_Post> GetPostValues(BR_Post post,CreatePostViewModel model, BR_ApplicationUser user, IUsersOperations _usersOperations)
+        {
+            var userRole = await _usersOperations.GetUserRole(user!);
+            post.Title = model.Title;
+            post.ShortDescription = model.ShortDescription;
+            post.Description = model.Description;
+            post.Category = model.Category;
+            post.Tags = model.Tags;
+            post.Approved = userRole[0] == Roles.Admin;
+            return post;
+        }
     }
 }

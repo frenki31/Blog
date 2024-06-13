@@ -32,7 +32,7 @@ namespace BeReal.Areas.Admin.Controllers
             var posts = new List<BR_Post>();
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
-            posts = loggedUserRole[0] == Roles.Admin ? await _postsOperations.getAllPosts() : await _postsOperations.getPostsOfUser(loggedUser!.Id);
+            posts = loggedUserRole[0] == Roles.Admin ? await _postsOperations.GetAllPosts() : await _postsOperations.GetPostsOfUser(loggedUser!.Id);
             var pageSize = 5;
             var pageNumber = (page ?? 1);
             var postVms = posts.Select(x => new PostViewModel()
@@ -61,43 +61,34 @@ namespace BeReal.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(model); 
             var loggedUser = await _usersOperations.GetLoggedUser(User);
-            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             BR_Document? file = null;
             if (model.File != null)
             {
                 file = await _fileManager.GetFileInfo(model);
                 _fileManager.AddFile(file);
-                await _postsOperations.saveChanges();
+                await _postsOperations.SaveChanges();
             }
-            var post = new BR_Post
-            {
-                Title = model.Title,
-                ShortDescription = model.ShortDescription,
-                Description = model.Description,
-                Category = model.Category,
-                Tags = model.Tags,
-                ApplicationUser = loggedUser,
-                Author = loggedUser!.FirstName + " " + loggedUser.LastName,
-                Document = file,
-            };
+            var post = new BR_Post();
+            post = await _postsOperations.GetPostValues(post, model, loggedUser!, _usersOperations);
+            post.ApplicationUser = loggedUser;
+            post.Author = loggedUser!.FirstName + " " + loggedUser.LastName;
+            post.Document = file;
             if (post.Title != null)
             {
-                string slug = model.Title!.Trim();
-                slug = slug.Replace(" ", "-");
+                string slug = model.Title!.Trim().Replace(" ", "-");
                 post.Slug = slug + "-" + Guid.NewGuid();
             }
             post.Image = model.Image != null ? _fileManager.GetImagePath(model.Image) : null;
-            post.Approved = loggedUserRole[0] == Roles.Admin;
             string message = post.Approved ? "Post Created Successfully" : "Waiting for approval";
-            _postsOperations.addPost(post);
+            _postsOperations.AddPost(post);
             _notification.Success(message);
-            await _postsOperations.saveChanges();
+            await _postsOperations.SaveChanges();
             return RedirectToAction("Index");
         }
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var post = await _postsOperations.getPostWithDocById(id);
+            var post = await _postsOperations.GetPostWithDocById(id);
             if (post == null) return View();
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
@@ -106,17 +97,7 @@ namespace BeReal.Areas.Admin.Controllers
                 _notification.Error("You are not authorized");
                 return RedirectToAction("Index");
             }
-            var edit = new CreatePostViewModel { 
-                Id = post.IDBR_Post,
-                Title = post.Title,
-                ShortDescription = post.ShortDescription,
-                Description = post.Description,
-                ImageUrl = post.Image,
-                Category = post.Category,
-                Tags = post.Tags,
-                Approved = post.Approved,
-            };
-            edit.File = post.Document != null ? new FileViewModel { Id = post.Document!.IDBR_Document, ContentType = post.Document.ContentType, Name = post.Document.FileName } : null;
+            var edit = _postsOperations.GetEditViewModel(post);
             return View(edit);
         }
         [HttpPost]
@@ -124,14 +105,9 @@ namespace BeReal.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
             var loggedUser = await _usersOperations.GetLoggedUser(User);
-            var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
-            var post = await _postsOperations.getPostWithDocById(vm.Id);
+            var post = await _postsOperations.GetPostWithDocById(vm.Id);
             if (post == null) return View();
-            post.Title = vm.Title;
-            post.ShortDescription = vm.ShortDescription;
-            post.Description = vm.Description;
-            post.Category = vm.Category;
-            post.Tags = vm.Tags;
+            post = await _postsOperations.GetPostValues(post, vm, loggedUser!, _usersOperations);
             post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm) : post.Document;
             if (vm.Image != null)
             {
@@ -139,22 +115,21 @@ namespace BeReal.Areas.Admin.Controllers
                     _fileManager.RemoveImage(post.Image);
                 post.Image = _fileManager.GetImagePath(vm.Image);
             }
-            post.Approved = loggedUserRole[0] == Roles.Admin;
             string message = post.Approved == true ? "Post Updated Successfully" : "Post Updated. Waiting for approval";
-            await _postsOperations.saveChanges();
+            await _postsOperations.SaveChanges();
             _notification.Success(message);
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
         [HttpPost]
         public async Task<IActionResult> Delete(int id)
         {
-            var post = await _postsOperations.getPostById(id);
+            var post = await _postsOperations.GetPostById(id);
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == post!.ApplicationUser!.Id)
             {
-                _postsOperations.removePost(post!);
-                await _postsOperations.saveChanges();
+                _postsOperations.RemovePost(post!);
+                await _postsOperations.SaveChanges();
                 _notification.Success("Post Deleted Successfully");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
@@ -171,13 +146,13 @@ namespace BeReal.Areas.Admin.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)
         {
-            var post = await _postsOperations.getPostById(id);
+            var post = await _postsOperations.GetPostById(id);
             if (post == null)
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             post.Approved = true;
             _notification.Success("Post was approved");
-            _postsOperations.updatePost(post);
-            await _postsOperations.saveChanges();
+            _postsOperations.UpdatePost(post);
+            await _postsOperations.SaveChanges();
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
     }

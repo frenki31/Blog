@@ -27,8 +27,8 @@ namespace BeReal.Controllers
         {
             if (page < 1)
                 return RedirectToAction("Index", new { page = 1, search, category, startDate, endDate });
-            var home = await _pagesOperations.getPage("home");
-            var query = _postsOperations.getFilteredPosts(category, search, startDate, endDate);
+            var home = await _pagesOperations.GetPage("home");
+            var query = _postsOperations.GetFilteredPosts(category, search, startDate, endDate);
             int postCount = query.Count();
             int pageSize = 5;
             int skip = pageSize * (page - 1);
@@ -52,24 +52,24 @@ namespace BeReal.Controllers
         }
         public async Task<IActionResult> About()
         {
-            var page = await _pagesOperations.getPage("about");
+            var page = await _pagesOperations.GetPage("about");
             return View(_pagesOperations.GetPageViewModel(page!));
         }
         public async Task<IActionResult> Contact()
         {
-            var page = await _pagesOperations.getPage("contact");
+            var page = await _pagesOperations.GetPage("contact");
             return View(_pagesOperations.GetPageViewModel(page!));
         }
         public async Task<IActionResult> Privacy()
         {
-            var page = await _pagesOperations.getPage("privacy");
+            var page = await _pagesOperations.GetPage("privacy");
             return View(_pagesOperations.GetPageViewModel(page!));
         }
         public async Task<IActionResult> Profile(string id)
         {
             var user = await _usersOperations.GetUserById(id);
             var userRole = await _usersOperations.GetUserRole(user);
-            var posts = await _postsOperations.getUserPosts(user!);
+            var posts = await _postsOperations.GetUserPosts(user!);
             var postCount = posts.Count();
             if (user == null)
                 return View();
