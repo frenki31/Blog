@@ -1,6 +1,5 @@
 ﻿using AspNetCoreHero.ToastNotification.Abstractions;
-using BeReal.Data.Repository.Comments;
-using BeReal.Data.Repository.Posts;
+using BeReal.Data.Repository.Email;
 using BeReal.Data.Repository.Users;
 using BeReal.Models;
 using BeReal.Utilities;
@@ -13,11 +12,14 @@ namespace BeReal.Areas.Admin.Controllers
     public class LoginController : Controller
     {
         private readonly IUsersOperations _usersOperations;
+        private readonly IEmailService _emailService;
+
         public INotyfService _notification { get; }
-        public LoginController (IUsersOperations usersOperations, INotyfService notification)
+        public LoginController (IUsersOperations usersOperations, INotyfService notification, IEmailService emailService)
         {
             _notification = notification;
             _usersOperations = usersOperations;
+            _emailService = emailService;
         }
         [HttpGet("Login")]
         public IActionResult Index(string url)
@@ -42,6 +44,11 @@ namespace BeReal.Areas.Admin.Controllers
             if (!checkPassword)
             {
                 _notification.Error("Password does not match!");
+                return View(lvm);
+            }
+            if (!username.EmailConfirmed)
+            {
+                _notification.Error("Email is not confirmed");
                 return View(lvm);
             }
             await _usersOperations.SignIn(lvm.Username!, lvm.Password!, lvm.RememberMe, true);
@@ -81,10 +88,22 @@ namespace BeReal.Areas.Admin.Controllers
             if (checkUser.Succeeded)
             {
                 await _usersOperations.GiveRoleToUser(user, Roles.User);
-                _notification.Success("User registered successfully!");
+                string token = await _usersOperations.GenerateEmailToken(user);
+                var confirmationLink = Url.Action("ConfirmEmail", "Login", new { area = "Admin", userId = user.Id, token }, Request.Scheme);
+                await _emailService.SendEmailAsync(rvm.Email!, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
+                _notification.Success("User registered. Please check email for confirmation!");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
             return View(rvm);
+        }
+        [HttpGet]
+        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        {
+            var user = await _usersOperations.GetUserById(userId);
+            var result = await _usersOperations.ConfirmEmail(user!,token);
+            if (result.Succeeded)
+                return View("EmailConfirmed");
+            return View();
         }
     }
 }

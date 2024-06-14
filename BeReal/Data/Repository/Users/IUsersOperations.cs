@@ -25,6 +25,8 @@ namespace BeReal.Data.Repository.Users
         Task<SignInResult> SignIn(string username, string password, bool remember, bool trueOrFalse);
         Task<string> ValidateUser(RegisterViewModel rvm, IUsersOperations _usersOperations);
         Task<string> ValidateResetPassword(ResetPasswordViewModel rpvm, IUsersOperations _usersOperations);
+        Task<string> GenerateEmailToken(BR_ApplicationUser user);
+        Task<IdentityResult> ConfirmEmail(BR_ApplicationUser user, string token);
         Task Logout();
     }
 }

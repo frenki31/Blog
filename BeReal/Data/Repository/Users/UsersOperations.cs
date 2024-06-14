@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using BeReal.ViewModels;
+using NuGet.Common;
 
 namespace BeReal.Data.Repository.Users
 {
@@ -15,6 +16,8 @@ namespace BeReal.Data.Repository.Users
             _signInManager = signInManager;
         }
         //Users
+        public async Task<string> GenerateEmailToken(BR_ApplicationUser user) => await _userManager.GenerateEmailConfirmationTokenAsync(user); 
+        public async Task<IdentityResult> ConfirmEmail(BR_ApplicationUser user, string token) => await _userManager.ConfirmEmailAsync(user, token); 
         public async Task<BR_ApplicationUser?> GetUserById(string id) => await _userManager.FindByIdAsync(id);
         public async Task<IList<string>> GetUserRole(BR_ApplicationUser? user) => await _userManager.GetRolesAsync(user!);
         public async Task<BR_ApplicationUser?> GetCommentUser(ClaimsPrincipal User) => await _userManager.GetUserAsync(User);

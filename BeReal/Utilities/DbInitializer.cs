@@ -36,6 +36,8 @@ namespace BeReal.Utilities
                     };
                     var result = _userManager.CreateAsync(admin, "Admin@1234").GetAwaiter().GetResult();
                     _userManager.AddToRoleAsync(admin, Roles.Admin).GetAwaiter().GetResult();
+                    var token = _userManager.GenerateEmailConfirmationTokenAsync(admin).GetAwaiter().GetResult();   
+                    _userManager.ConfirmEmailAsync(admin, token).GetAwaiter().GetResult();
                 }
                 var pages = new List<BR_Page>()
                 {

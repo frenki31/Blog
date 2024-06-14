@@ -2,6 +2,7 @@ using AspNetCoreHero.ToastNotification;
 using AspNetCoreHero.ToastNotification.Extensions;
 using BeReal.Data;
 using BeReal.Data.Repository.Comments;
+using BeReal.Data.Repository.Email;
 using BeReal.Data.Repository.Files;
 using BeReal.Data.Repository.Pages;
 using BeReal.Data.Repository.Posts;
@@ -10,6 +11,7 @@ using BeReal.Models;
 using BeReal.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using SendGrid.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +22,17 @@ builder.Services.AddIdentity<BR_ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
+var configurationBuilder = new ConfigurationBuilder().AddUserSecrets<Program>().Build(); 
+
+builder.Services.Configure<SendGridSettings>(builder.Configuration.GetSection("SendGridSettings"));
+builder.Services.AddSendGrid(options =>
+{
+    options.ApiKey = configurationBuilder["ApiKey"];
+});
+
 builder.Services.AddScoped<IDbInitializer, DbInitializer>();
 
+builder.Services.AddTransient<IEmailService, EmailService>();
 builder.Services.AddTransient<IPostsOperations, PostsOperations>();
 builder.Services.AddTransient<IPagesOperations, PagesOperations>();
 builder.Services.AddTransient<IUsersOperations, UsersOperations>();
