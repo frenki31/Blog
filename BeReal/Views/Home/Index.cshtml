@@ -22,19 +22,20 @@
                     </div>
                 </div>
             </form>
-            <div class="d-flex flex-row justify-content-center align-items-center flex-nowrap">
+            <div class="d-flex flex-row justify-content-center align-items-center flex-wrap">
                 @{
                     var categories = new List<string>() { "", "Programming", "Travel", "Sports", "Lifestyle" };
                 }
                 @foreach (string category in categories)
                 {
                     string value = category.Equals("") ? "All" : category;
-                    <form asp-controller="Home" asp-action="Index" method="get">
+                    <form asp-controller="Home" asp-action="Index" method="get" class="m-1">
                         <input type="hidden" asp-for="Category" value="@category" />
-                        <input type="submit" value="@value" class="btn btn-default btn-small m-1" />
+                        <input type="submit" value="@value" class="btn btn-default btn-sm" />
                     </form>
                 }
             </div>
+
             <hr />
             @foreach (var post in Model.Posts!)
             {

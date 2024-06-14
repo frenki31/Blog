@@ -43,13 +43,10 @@ namespace BeReal.Controllers
         public async Task<IActionResult> Comment(BlogPostViewModel vm)
         {
             if (vm.Post is null || vm.Comment is null) 
-                return RedirectToAction("Index", "Home"); 
-            var post = await _postsOperations.GetPostById(vm.Post.IDBR_Post);
-            if (post == null) 
-                return NotFound(); 
+                return RedirectToAction("Index", "Home");  
             var comment = vm.Comment;
             comment.ApplicationUser = await _usersOperations.GetCommentUser(User);
-            comment.Post = post;
+            comment.Post = await _postsOperations.GetPostById(vm.Post.IDBR_Post);
             comment.Created = DateTime.Now;
             if (comment.ParentComment != null)
             {
@@ -59,7 +56,28 @@ namespace BeReal.Controllers
             _commentsOperations.AddComment(comment);
             await _commentsOperations.SaveChanges();
             _notification.Success("Commented");
-            return RedirectToAction("Post", new { slug = post.Slug });
+            return RedirectToAction("Post", new { slug = comment.Post!.Slug });
+        }
+        [HttpPost]
+        [Authorize]
+        public async Task<IActionResult> EditComment(BlogPostViewModel vm)
+        {
+            if (vm.Comment is null)
+                return RedirectToAction("Index", "Home");
+            var post = await _postsOperations.GetPostById(vm.Post!.IDBR_Post);
+            var comment = await _commentsOperations.GetCommentById(vm.Comment.IDBR_Comment);
+            comment!.Message = vm.Comment.Message;
+            comment.Created = DateTime.Now;
+            comment.ApplicationUser = await _usersOperations.GetCommentUser(User);
+            if (vm.Comment.ParentComment != null)
+            {
+                var ParComment = await _commentsOperations.GetCommentById(vm.Comment.ParentComment.IDBR_Comment);
+                comment.ParentComment = ParComment != null ? ParComment : null;
+            }
+            _commentsOperations.UpdateComment(comment);
+            await _commentsOperations.SaveChanges();
+            _notification.Success("Comment updated");
+            return RedirectToAction("Post", new { slug = post!.Slug });
         }
         [HttpPost]
         [Authorize]

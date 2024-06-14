@@ -90,12 +90,12 @@
                 <h5 class="modal-title" id="exampleModalLabel">Ready to Leave?</h5>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
                 <form asp-action="Logout" asp-controller="User" asp-area="Admin" method="post">
                     <button type="submit" class="btn btn-primary">
                         Logout
                     </button>
                 </form>
+                <button class="btn btn-secondary" type="button" data-dismiss="modal">Cancel</button>
             </div>
         </div>
     </div>
