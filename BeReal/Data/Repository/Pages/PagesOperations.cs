@@ -12,7 +12,7 @@ namespace BeReal.Data.Repository.Pages
             _context = context;
         }
         //Pages
-        public async Task<BR_Page?> GetPage(string slug) => await _context.Pages.FirstOrDefaultAsync(x => x.Slug == slug);
+        public async Task<BR_Page?> GetPage(string slug) => await _context.BR_Pages.FirstOrDefaultAsync(x => x.Slug == slug);
         public PageViewModel GetPageViewModel(BR_Page page)
         {
             var vm = new PageViewModel()

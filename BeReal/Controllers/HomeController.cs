@@ -23,12 +23,12 @@ namespace BeReal.Controllers
             _notification = notification;
             _fileManager = fileManager; 
         }
-        public async Task<IActionResult> Index(int page, string category, string search, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> Index(int page, string category, string subcategory, string search, DateTime startDate, DateTime endDate)
         {
             if (page < 1)
-                return RedirectToAction("Index", new { page = 1, search, category, startDate, endDate });
+                return RedirectToAction("Index", new { page = 1, search, category, subcategory, startDate, endDate });
             var home = await _pagesOperations.GetPage("home");
-            var query = _postsOperations.GetFilteredPosts(category, search, startDate, endDate);
+            var query = _postsOperations.GetFilteredPosts(category, subcategory, search, startDate, endDate);
             int pageSize = 5;
             int skip = pageSize * (page - 1);
             int postCount = query.Count();
@@ -37,13 +37,15 @@ namespace BeReal.Controllers
             {
                 Page = _pagesOperations.GetPageViewModel(home!),
                 Category = category,
+                SubCategory = subcategory,
                 Search = search,
                 StartDate = startDate,
                 EndDate = endDate,
                 PageNumber = page,
                 NextPage = postCount > skip + pageSize,
                 PageCount = pageCount,
-                Posts = await _postsOperations.GetPostsWithPagination(query,skip,pageSize),
+                Categories = await _postsOperations.GetCategories(),
+                Posts = await _postsOperations.GetPostsWithPagination(query, skip, pageSize),
                 Pages = _fileManager.Pages(page, pageCount),
             };
             return View(viewModel);

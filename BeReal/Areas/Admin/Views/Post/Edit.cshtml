@@ -28,10 +28,10 @@
                         <div class="mb-2">
                             <label>Category<span style="color:red">*</span></label>
                             <input asp-for="Category" type="text" id="myTextField" class="form-control" readonly>
-                            <label><input type="checkbox" class="myCheckbox" value="Sports">Sports</label>
-                            <label><input type="checkbox" class="myCheckbox" value="Travel">Travel</label>
-                            <label><input type="checkbox" class="myCheckbox" value="Lifestyle">Lifestyle</label>
-                            <label><input type="checkbox" class="myCheckbox" value="Programming">Programming</label>
+                            @foreach (var category in Model.Categories!.Where(X => X.ParentCategory != null))
+                            {
+                                <label><input type="checkbox" class="myCheckbox" value="@category.Name">@category.Name</label>
+                            }
                         </div>
                         <div class="mb-2">
                             <label>Tags</label>

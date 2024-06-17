@@ -1,6 +1,5 @@
 ﻿using BeReal.Models;
 using BeReal.ViewModels;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 namespace BeReal.Data.Repository.Files
 {
@@ -86,8 +85,8 @@ namespace BeReal.Data.Repository.Files
             }
             return new BR_Document { };
         }
-        public void AddFile(BR_Document file) => _context.Files.Add(file);
-        public async Task<BR_Document?> GetFileById(int? id) => await _context.Files.FirstOrDefaultAsync(f => f.IDBR_Document == id);
+        public void AddFile(BR_Document file) => _context.BR_Files.Add(file);
+        public async Task<BR_Document?> GetFileById(int? id) => await _context.BR_Files.FirstOrDefaultAsync(f => f.IDBR_Document == id);
         public async Task<(byte[], string, string)> DownloadFile(int? id, IFileManager _fileManager)
         {
             var file = await _fileManager.GetFileById(id);

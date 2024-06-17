@@ -52,9 +52,10 @@ namespace BeReal.Areas.Admin.Controllers
             return View(await postVms.OrderByDescending(x => x.publicationDate).ToPagedListAsync(pageNumber, pageSize));
         }
         [HttpGet]
-        public IActionResult Create()
+        public async Task<IActionResult> Create()
         {
-            return View(new CreatePostViewModel());
+            var vm = new CreatePostViewModel() { Categories = await _postsOperations.GetCategories() };
+            return View(vm);
         }
         [HttpPost]
         public async Task<IActionResult> Create(CreatePostViewModel model)
@@ -141,7 +142,6 @@ namespace BeReal.Areas.Admin.Controllers
             var (fileData, contentType, fileName) = await _fileManager.DownloadFile(id,_fileManager);
             return File(fileData, contentType, fileName);
         }
-
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Approve(int id)

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using BeReal.Models;
+using System.ComponentModel.DataAnnotations;
 
 namespace BeReal.ViewModels
 {
@@ -12,6 +13,7 @@ namespace BeReal.ViewModels
         public string? Author { get; set; }
         [Required]
         public string? Category { get; set; }
+        public List<BR_Category>? Categories { get; set; }
         public string? Tags { get; set; }
         public string? Description { get; set; }
         public string? ImageUrl { get; set; }

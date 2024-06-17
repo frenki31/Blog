@@ -3,14 +3,42 @@
     ViewData["Title"] = "Home Page";
     ViewData["Description"] = "A blogging website";
     ViewData["Keywords"] = "blog travel sports programming photography";
-}
-@{
     await Html.RenderPartialAsync("_Navbar");
     await Html.RenderPartialAsync("_HomeHeader");
 }
 <link href="~/css/styles.css" rel="stylesheet" />
 <div class="container-fluid px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
+        <div class="col-md-2">
+            <div class="d-flex flex-column align-items-start">
+                <ul>
+                    @foreach (var category in Model.Categories!.Where(X => X.ParentCategory == null))
+                    {
+                        <li>
+                            <form asp-controller="Home" asp-action="Index" method="get" class="m-1">
+                                <input type="hidden" asp-for="Category" value="@category.Name" />
+                                <input type="submit" value="@category.Name" class="btn btn-default btn-sm" />
+                            </form>
+                            @if (category.Subcategories!.Any())
+                            {
+                                <ul>
+                                    @foreach (var subcategory in category.Subcategories!)
+                                    {
+                                        <li>
+                                            <form asp-controller="Home" asp-action="Index" method="get">
+                                                <input type="hidden" asp-for="Category" value="@category.Name" />
+                                                <input type="hidden" asp-for="SubCategory" value="@subcategory.Name" />
+                                                <input type="submit" value="@subcategory.Name" class="btn btn-default btn-sm" />
+                                            </form>
+                                        </li>
+                                    }
+                                </ul>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
         <div class="col-md-10 col-lg-8 col-xl-7 ">
             <form asp-controller="Home" asp-action="Index" class="form-horizontal m-auto transparent-form">
                 <div class="input-group input-group-sm">
@@ -22,27 +50,13 @@
                     </div>
                 </div>
             </form>
-            <div class="d-flex flex-row justify-content-center align-items-center flex-wrap">
-                @{
-                    var categories = new List<string>() { "", "Programming", "Travel", "Sports", "Lifestyle" };
-                }
-                @foreach (string category in categories)
-                {
-                    string value = category.Equals("") ? "All" : category;
-                    <form asp-controller="Home" asp-action="Index" method="get" class="m-1">
-                        <input type="hidden" asp-for="Category" value="@category" />
-                        <input type="submit" value="@value" class="btn btn-default btn-sm" />
-                    </form>
-                }
-            </div>
-
             <hr />
             @foreach (var post in Model.Posts!)
             {
                 <div class="post-preview">
                     <div class="row">
                         <div class="col-lg-7 col-md-12 d-flex justify-content-center flex-column">
-                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
+                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category" asp-route-subcategory="@Model.SubCategory">
                                 <h2 class="post-title">@post.Title</h2>
                                 <h4 class="post-subtitle">@post.ShortDescription</h4>
                             </a>
@@ -51,8 +65,7 @@
                                 <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.ApplicationUser!.Id">@post.Author</a>
                                 on @post.PublicationDate.ToString("dd-MM-yyyy")
                             </p>
-                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">Read More...</a>
-
+                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category" asp-route-subcategory="@Model.SubCategory">Read More...</a>
                             @if (post.Document != null)
                             {
                                 <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.IDBR_Document">
@@ -64,7 +77,7 @@
                             @{
                                 string Image = post.Image == null ? "default_image.png" : post.Image;
                             }
-                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug">
+                            <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-subcategory="@Model.SubCategory" asp-route-category="@Model.Category">
                                 <img class="img-fluid d-none d-lg-block" src="~/images/@Image" />
                             </a>
                         </div>
@@ -78,7 +91,7 @@
                     {
                         <li class="page-item">
                             <a aria-label="previous" class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                               asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber-1)">
+                               asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber-1)">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -94,7 +107,7 @@
                             string active = page == Model.PageNumber ? "active" : "";
                             <li class="page-item @active">
                                 <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                                   asp-route-start="@Model.StartDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-end="@Model.EndDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-page="@(page)">@(page)</a>
+                                   asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-end="@Model.EndDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-page="@(page)">@(page)</a>
                             </li>
                         }
                     }
@@ -102,7 +115,7 @@
                     {
                         <li class="page-item">
                             <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                               asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber+1)"><i class="fa-solid fa-chevron-right"></i></a>
+                               asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber+1)"><i class="fa-solid fa-chevron-right"></i></a>
                         </li>
                     }
                 </ul>

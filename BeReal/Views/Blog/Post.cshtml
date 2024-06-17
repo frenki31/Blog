@@ -3,8 +3,6 @@
     ViewData["Title"] = "Post";
     ViewData["Description"] = Model.Post!.ShortDescription;
     ViewData["Keywords"] = $"{Model.Post.Tags?.Replace(",", "")} {Model.Post.Category}";
-}
-@{
     await Html.RenderPartialAsync("_Navbar");
     await Html.RenderPartialAsync("_PostHeader");
 }
