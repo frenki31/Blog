@@ -1,16 +1,7 @@
 ﻿@model BlogPostViewModel
 @{
-    string imageUrl = "";
-    if (Model.Post!.Image == null)
-    {
-        imageUrl = "assets/img/post-bg.jpg";
-    }
-    else
-    {
-        imageUrl = "/images/" + Model.Post.Image;
-    }
+    string imageUrl = Model.Post!.Image == null ? "/blog/assets/img/post-bg.jpg" : "/images/" + Model.Post.Image;
 }
-
 <header class="masthead" style="background-image: url('@imageUrl')">
     <div class="container position-relative px-4 px-lg-5">
         <div class="row gx-4 gx-lg-5 justify-content-center">

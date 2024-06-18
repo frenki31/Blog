@@ -4,17 +4,15 @@
 @{
     var authUser = await userOperations.GetLoggedUser(User);
 }
-<link href="~/css/styles.css" rel="stylesheet" />
 <h3 class="mb-2 mt-3"> 
-    @{
-        string number = Model.Post!.Comments!.Count() != 1 ? $"{Model.Post.Comments!.Count()} Comments" : "1 Comment";
-    }
+    @{ string number = Model.Post!.Comments!.Count() != 1 ? $"{Model.Post.Comments!.Count()} Comments" : "1 Comment"; }
     @number
 </h3>
 @if (User.Identity!.IsAuthenticated)
 {
     <div class="mb-4">
         <form asp-controller="Blog" asp-action="Comment">
+            <input asp-for="ReturnUrl" readonly hidden />
             <input asp-for="Post!.IDBR_Post" readonly hidden />
             <textarea asp-for="Comment!.Message" class="form-control" rows="3" required></textarea>
             <button class="btn btn-outline-primary post-btn" type="submit">Comment</button>
@@ -42,7 +40,7 @@ else
                     @if (authUser!.UserName == comment.ApplicationUser!.UserName || User.IsInRole("Admin")) {
                         <div class="d-flex justify-content-end">
                             <a aria-expanded="false" data-target="@($"#editComment{comment.IDBR_Comment}")" data-toggle="collapse" class="btn btn-default edit-btn"><i class="fa-solid fa-edit"></i></a>
-                            <form method="post" asp-action="DeleteComment" asp-controller="Blog" asp-route-id="@comment.IDBR_Comment" asp-route-slug="@Model.Post.Slug">
+                            <form method="post" asp-action="DeleteComment" asp-controller="Blog" asp-route-id="@comment.IDBR_Comment" asp-route-url="@Model.ReturnUrl">
                                 <button type="submit" class="btn btn-default" style="color:orangered"><i class="fa-solid fa-trash"></i></button>
                             </form>
                         </div>
@@ -54,6 +52,7 @@ else
             {
                 <div class="collapse" id="@($"replyComment{comment.IDBR_Comment}")">
                     <form asp-controller="Blog" asp-action="Comment">
+                        <input asp-for="ReturnUrl" readonly hidden />
                         <input asp-for="Post!.IDBR_Post" readonly hidden />
                         <input asp-for="Comment!.ParentComment!.IDBR_Comment" value="@comment.IDBR_Comment" readonly hidden />
                         <div class="form-group">
@@ -67,6 +66,7 @@ else
                 {
                     <div class="collapse" id="@($"editComment{comment.IDBR_Comment}")">
                         <form asp-controller="Blog" asp-action="EditComment">
+                            <input asp-for="ReturnUrl" readonly hidden />
                             <input asp-for="Post!.IDBR_Post" readonly hidden />
                             <input asp-for="Comment!.IDBR_Comment" value="@comment.IDBR_Comment" readonly hidden />
                             <div class="form-group">
@@ -98,7 +98,7 @@ else
                                 {
                                     <div class="d-flex justify-content-end">
                                         <a aria-expanded="false" data-target="@($"#editReply{comment.IDBR_Comment}")" data-toggle="collapse" class="btn btn-default edit-btn"><i class="fa-solid fa-edit"></i></a>
-                                        <form method="post" asp-action="DeleteComment" asp-controller="Blog" asp-route-id="@reply.IDBR_Comment" asp-route-slug="@Model.Post.Slug">
+                                        <form method="post" asp-action="DeleteComment" asp-controller="Blog" asp-route-id="@reply.IDBR_Comment" asp-route-url="@Model.ReturnUrl">
                                             <button type="submit" class="btn btn-default" style="color:orangered"><i class="fa-solid fa-trash"></i></button>
                                         </form>
                                     </div>

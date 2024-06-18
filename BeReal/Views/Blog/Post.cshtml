@@ -35,14 +35,5 @@
     await Html.RenderPartialAsync("_Footer");
 }
 @section Scripts {
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-        $(document).ready(function () {
-            $(".reply-btn").click(function (e) {
-                e.preventDefault();
-                var target = $(this).data('target');
-                $(target).collapse('toggle');
-            });
-        });
-    </script>
+    <partial name="_ValidationScriptsPartial" />
 }

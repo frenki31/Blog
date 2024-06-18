@@ -1,8 +1,6 @@
 ﻿@model RegisterViewModel
 @{
     ViewData["Title"] = "Register User";
-}
-@{
     await Html.RenderPartialAsync("_Navbar");
 }
 <div class="container-fluid">
@@ -16,32 +14,26 @@
                 <div class="mb-2">
                     <label>First Name</label>
                     <input asp-for="FirstName" type="text" class="form-control" />
-                    <span asp-validation-for="FirstName" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <label>Last Name</label>
                     <input asp-for="LastName" type="text" class="form-control" />
-                    <span asp-validation-for="LastName" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <label>Email</label>
                     <input asp-for="Email" type="text" class="form-control" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <label>Username</label>
                     <input asp-for="Username" type="text" class="form-control" />
-                    <span asp-validation-for="Username" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <label>Password</label>
                     <input asp-for="Password" type="password" class="form-control" />
-                    <span asp-validation-for="Password" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <label>Confirm Password</label>
                     <input asp-for="ConfirmPassword" type="password" class="form-control" />
-                    <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
                 </div>
                 <div class="mb-2">
                     <input asp-for="isAdmin" type="checkbox" class="custom-checkbox" />

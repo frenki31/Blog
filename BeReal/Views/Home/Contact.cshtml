@@ -3,18 +3,8 @@
     ViewData["Title"] = "Contact";
     ViewData["Description"] = "A blogging website";
     ViewData["Keywords"] = "blog travel sports programming photography";
-
-    string imageUrl = "";
-    if (Model.ImageUrl == null)
-    {
-        imageUrl = "/blog/assets/img/contact-bg.jpg";
-    }
-    else
-    {
-        imageUrl = "/images/" + Model.ImageUrl;
-    }
-}
-@{
+    
+    string imageUrl = Model.ImageUrl == null ? "/blog/assets/img/contact-bg.jpg" : "/images/" + Model.ImageUrl;
     await Html.RenderPartialAsync("_Navbar");
 }
 <!-- Page Header-->

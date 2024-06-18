@@ -78,6 +78,7 @@ namespace BeReal.Areas.Admin.Controllers
                 LastName = rvm.LastName,
                 UserName = rvm.Username,
                 Email = rvm.Email,
+                EmailConfirmed = true,
             };
             var checkUser = await _usersOperations.CreateUser(user, rvm.Password!);
             if (checkUser.Succeeded)
@@ -95,11 +96,7 @@ namespace BeReal.Areas.Admin.Controllers
         {
             var thisUser = await _usersOperations.GetUserById(id);
             if (thisUser == null) return View();
-            var resetVm = new ResetPasswordViewModel()
-            {
-                Id = thisUser.Id,
-                Username = thisUser.UserName,
-            };
+            var resetVm = new ResetPasswordViewModel() { Id = thisUser.Id, Username = thisUser.UserName };
             return View(resetVm);
         }
         [Authorize(Roles = "Admin")]

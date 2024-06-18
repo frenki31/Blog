@@ -18,17 +18,14 @@
                         <div class="mb-2">
                             <label>Title</label>
                             <input asp-for="Title" type="text" class="form-control" />
-                            <span asp-validation-for="Title" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
                             <label>Short Description</label>
                             <input asp-for="ShortDescription" type="text" class="form-control" />
-                            <span asp-validation-for="ShortDescription" class="text-danger"></span>
                         </div>
                         <div class="mb-2">
                             <label>Description</label>
                             <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
-                            <span asp-validation-for="Description" class="text-danger"></span>
                         </div>
                     </div>
                     <div class="col-3">
@@ -54,11 +51,4 @@
 }
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        $('.custom-file').on('change', function () {
-            var fileName = $(this).val().split('\\').pop();
-            $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
-            document.getElementById("thumbnail").src = window.URL.createObjectURL(this.files[0])
-        });
-    </script>
 }

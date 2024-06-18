@@ -10,10 +10,7 @@
         <div class="rounded mb-4 bg-white p-4">
             <div class="row">
                 <div class="col-lg-2 col-md-3 d-flex justify-content-center flex-column">
-                    @{
-                        string image = post.Image == null ? "default_image.png" : post.Image;
-                    }
-                    <img class="img-fluid d-none d-md-block" src="~/images/@image" style="object-fit:cover; height:100%; width:100%" />
+                    <img class="img-fluid d-none d-md-block" src="~/images/@(post.Image ?? "default_image.png")" style="object-fit:cover; height:100%; width:100%" />
                 </div>
                 <div class="col-lg-5 col-md-4 d-flex justify-content-center flex-column">
                     <h4 class="text-primary fw-bold" style="font-size: 1.5rem; font-weight: bolder">@post.Title</h4>

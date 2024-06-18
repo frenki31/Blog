@@ -1,2 +1,26 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script>
+    $('.custom-file').on('change', function () {
+        var fileName = $(this).val().split('\\').pop();
+        $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
+        document.getElementById("thumbnail").src = window.URL.createObjectURL(this.files[0])
+    });
+
+    window.onload = function () {
+        var checkboxes = document.getElementsByClassName('myCheckbox');
+        var textFieldValue = document.getElementById('myTextField').value;
+        for (var i = 0; i < checkboxes.length; i++) {
+            if (textFieldValue.includes(checkboxes[i].value)) {
+                checkboxes[i].checked = true;
+            }
+            checkboxes[i].addEventListener('change', function () {
+                if (this.checked) {
+                    document.getElementById('myTextField').value += ' ' + this.value;
+                } else {
+                    document.getElementById('myTextField').value = document.getElementById('myTextField').value.replace(' ' + this.value, '');
+                }
+            });
+        }
+    }
+</script>

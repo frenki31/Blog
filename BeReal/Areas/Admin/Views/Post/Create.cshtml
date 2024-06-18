@@ -62,22 +62,4 @@
 }
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        $('.custom-file').on('change', function () {
-            var fileName = $(this).val().split('\\').pop();
-            $(this).siblings('.custom-file-label').addClass('selected').html(fileName);
-            document.getElementById("thumbnail").src = window.URL.createObjectURL(this.files[0])
-        });
-        
-        var checkboxes = document.getElementsByClassName('myCheckbox');
-        for (var i = 0; i < checkboxes.length; i++) {
-            checkboxes[i].addEventListener('change', function () {
-                if (this.checked) {
-                    document.getElementById('myTextField').value += ' ' + this.value;
-                } else {
-                    document.getElementById('myTextField').value = document.getElementById('myTextField').value.replace(' ' + this.value, '');
-                }
-            });
-        }
-    </script>
 }

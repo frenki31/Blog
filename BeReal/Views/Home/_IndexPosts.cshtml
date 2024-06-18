@@ -1,0 +1,35 @@
+﻿@model HomeViewModel
+@foreach (var post in Model.Posts!)
+{
+    <div class="post-preview">
+        <div class="row">
+            <div class="col-lg-7 col-md-12 d-flex justify-content-center flex-column">
+                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category!" asp-route-subcategory="@Model.SubCategory">
+                    <h2 class="post-title">@post.Title</h2>
+                    <h4 class="post-subtitle">@post.ShortDescription</h4>
+                </a>
+                <p class="post-meta">
+                    Posted by
+                    <a asp-action="Profile" asp-controller="Home" asp-route-id="@post.ApplicationUser!.Id">@post.Author</a>
+                    on @post.PublicationDate.ToString("dd-MM-yyyy")
+                </p>
+                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category!" asp-route-subcategory="@Model.SubCategory">Read More...</a>
+                @if (post.Document != null)
+                {
+                    <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.IDBR_Document">
+                        <input type="submit" class="btn btn-primary" value="Download" />
+                    </form>
+                }
+            </div>
+            <div class="col-lg-5 col-md-12 d-flex justify-content-end flex-column">
+                @{
+                    string Image = post.Image == null ? "default_image.png" : post.Image;
+                }
+                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-subcategory="@Model.SubCategory" asp-route-category="@Model.Category!">
+                    <img class="img-fluid d-none d-lg-block" src="~/images/@Image" />
+                </a>
+            </div>
+        </div>
+    </div>
+    <hr class="my-4" />
+}

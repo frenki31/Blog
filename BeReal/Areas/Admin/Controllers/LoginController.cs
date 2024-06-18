@@ -13,7 +13,6 @@ namespace BeReal.Areas.Admin.Controllers
     {
         private readonly IUsersOperations _usersOperations;
         private readonly IEmailService _emailService;
-
         public INotyfService _notification { get; }
         public LoginController (IUsersOperations usersOperations, INotyfService notification, IEmailService emailService)
         {
@@ -26,10 +25,7 @@ namespace BeReal.Areas.Admin.Controllers
         {
             if (!HttpContext.User.Identity!.IsAuthenticated)
             {
-                var login = new LoginViewModel()
-                {
-                    ReturnUrl = url
-                };
+                var login = new LoginViewModel() { ReturnUrl = url };
                 return View(login);
             }
             return RedirectToAction(nameof(Index), "Post", new { area = "Admin" });
@@ -101,8 +97,7 @@ namespace BeReal.Areas.Admin.Controllers
         {
             var user = await _usersOperations.GetUserById(userId);
             var result = await _usersOperations.ConfirmEmail(user!,token);
-            if (result.Succeeded)
-                return View("EmailConfirmed");
+            if (result.Succeeded) return View("EmailConfirmed");
             return View();
         }
     }

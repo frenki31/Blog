@@ -22,18 +22,15 @@ namespace BeReal.Controllers
             _commentsOperations = commentsOperations;
             _usersOperations = usersOperations;
         }
-        [HttpGet("[controller]/{category}/{subcategory}/{slug}", Order = 1)]
-        [HttpGet("[controller]/{category}/{slug}", Order = 2)]
-        [HttpGet("[controller]/{slug:required}", Order = 3)]
+        [HttpGet("[controller]/{category?}/{subcategory?}/{slug}", Order = 1)]
+        [HttpGet("[controller]/{category?}/{slug}", Order = 2)]
         public async Task<IActionResult> Post(string category, string subcategory, string slug)
         {
-            string url ;
+            string url = "" ;
             if (!string.IsNullOrEmpty(category) && !string.IsNullOrEmpty(subcategory))
                 url = Url.Action("Post", new { category, subcategory, slug })!;
             else if (!string.IsNullOrEmpty(category))
                 url = Url.Action("Post", new { category, slug })!;
-            else 
-                url = Url.Action("Post", new { slug })!;
             var post = await _postsOperations.GetBlogPost(slug, category, subcategory);
             if (post == null)
                 return NotFound();
@@ -44,8 +41,7 @@ namespace BeReal.Controllers
         [Authorize]
         public async Task<IActionResult> Comment(BlogPostViewModel vm)
         {
-            if (vm.Post is null || vm.Comment is null) 
-                return RedirectToAction("Index", "Home");  
+            if (vm.Post is null || vm.Comment is null) return RedirectToAction("Index", "Home");  
             var comment = vm.Comment;
             comment.ApplicationUser = await _usersOperations.GetCommentUser(User);
             comment.Post = await _postsOperations.GetPostById(vm.Post.IDBR_Post);
@@ -58,14 +54,13 @@ namespace BeReal.Controllers
             _commentsOperations.AddComment(comment);
             await _commentsOperations.SaveChanges();
             _notification.Success("Commented");
-            return RedirectToAction("Post", new { slug = comment.Post!.Slug });
+            return Redirect(vm.ReturnUrl!);
         }
         [HttpPost]
         [Authorize]
         public async Task<IActionResult> EditComment(BlogPostViewModel vm)
         {
-            if (vm.Comment is null)
-                return RedirectToAction("Index", "Home");
+            if (vm.Comment is null) return RedirectToAction("Index", "Home");
             var post = await _postsOperations.GetPostById(vm.Post!.IDBR_Post);
             var comment = await _commentsOperations.GetCommentById(vm.Comment.IDBR_Comment);
             comment!.Message = vm.Comment.Message;
@@ -79,11 +74,11 @@ namespace BeReal.Controllers
             _commentsOperations.UpdateComment(comment);
             await _commentsOperations.SaveChanges();
             _notification.Success("Comment updated");
-            return RedirectToAction("Post", new { slug = post!.Slug });
+            return Redirect(vm.ReturnUrl!);
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> DeleteComment(int id, string slug)
+        public async Task<IActionResult> DeleteComment(int id,string slug, string url)
         {
             var post = await _postsOperations.GetPostBySlug(slug);
             var Comment = await _commentsOperations.GetCommentWithReplies(id);
@@ -91,12 +86,12 @@ namespace BeReal.Controllers
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == Comment!.ApplicationUser!.Id)
             {
-                if (Comment!.Replies != null)
+                if (Comment!.Replies != null) 
                     _commentsOperations.RemoveReplies(Comment); 
                 _commentsOperations.RemoveComment(Comment);
                 await _commentsOperations.SaveChanges();
                 _notification.Success("Comment deleted successfully");
-                return RedirectToAction("Post", new { slug = post!.Slug });
+                return Redirect(url);
             }
             return View();
         }            

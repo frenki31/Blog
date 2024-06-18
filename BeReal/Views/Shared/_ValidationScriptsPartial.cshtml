@@ -1,2 +1,12 @@
 ﻿<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
 <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+    $(document).ready(function () {
+        $(".reply-btn").click(function (e) {
+            e.preventDefault();
+            var target = $(this).data('target');
+            $(target).collapse('toggle');
+        });
+    });
+</script>
