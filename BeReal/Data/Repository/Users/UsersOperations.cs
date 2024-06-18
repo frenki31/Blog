@@ -27,7 +27,7 @@ namespace BeReal.Data.Repository.Users
         public async Task<IdentityResult> GiveRoleToUser(BR_ApplicationUser user, string role) => await _userManager.AddToRoleAsync(user, role);
         public async Task<IdentityResult> RemoveRoleFromUser(BR_ApplicationUser user, string role) => await _userManager.RemoveFromRoleAsync(user, role);
         public async Task<BR_ApplicationUser?> GetLoggedUser(ClaimsPrincipal User) => await _userManager.Users.FirstOrDefaultAsync(x => x.UserName == User.Identity!.Name);
-        public async Task<List<BR_ApplicationUser>> GetUsers() => await _userManager.Users.ToListAsync();
+        public async Task<List<BR_ApplicationUser>> GetUsers() => await _userManager.Users.Where(x => x.EmailConfirmed).ToListAsync();
         public async Task<bool> CheckPasswordForLogin(BR_ApplicationUser user, string password) => await _userManager.CheckPasswordAsync(user, password!);
         public async Task<string> GenerateToken(BR_ApplicationUser user) => await _userManager.GeneratePasswordResetTokenAsync(user);
         public async Task<IdentityResult> ResetPassword(BR_ApplicationUser user, string token, string password) => await _userManager.ResetPasswordAsync(user, token, password);

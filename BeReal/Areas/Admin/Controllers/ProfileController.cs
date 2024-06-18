@@ -59,11 +59,12 @@ namespace BeReal.Areas.Admin.Controllers
             oldUser.FirstName = rvm.FirstName;
             oldUser.LastName = rvm.LastName;
             oldUser.Email = rvm.Email;
+            oldUser.EmailConfirmed = true;
             var checkUser = await _usersOperations.UpdateUser(oldUser);
             if (checkUser.Succeeded)
             {
                 _notification.Success("User profile updated successfully!");
-                return RedirectToAction("Profile", "Home", new { area = "", id = id});
+                return RedirectToAction("Profile", "Home", new { area = "", id});
             }
             return View(rvm);
         }
