@@ -16,17 +16,21 @@
                 <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category!" asp-route-subcategory="@Model.SubCategory">Read More...</a>
                 @if (post.Document != null)
                 {
-                    <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.IDBR_Document">
-                        <input type="submit" class="btn btn-primary" value="Download" />
+                    <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@post.Document.IDBR_Document" class="mt-3">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-download"></i></button>
                     </form>
                 }
             </div>
             <div class="col-lg-5 col-md-12 d-flex justify-content-end flex-column">
-                @{
-                    string Image = post.Image == null ? "default_image.png" : post.Image;
-                }
                 <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-subcategory="@Model.SubCategory" asp-route-category="@Model.Category!">
-                    <img class="img-fluid d-none d-lg-block" src="~/images/@Image" />
+                    @if (post.Image != null)
+                    {
+                        <img class="img-fluid d-none d-lg-block" loading="lazy" src="@Url.Action("GetImage", "Home", new { id = post.Image.IDBR_Document })" alt="Image" style="object-fit:cover; height:100%; width:100%" />
+                    }
+                    else
+                    {
+                        <img class="img-fluid d-none d-lg-block" src="~/images/default_image.png" style="object-fit:cover; height:100%; width:100%" />
+                    }
                 </a>
             </div>
         </div>

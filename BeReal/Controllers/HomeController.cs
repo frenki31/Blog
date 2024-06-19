@@ -23,7 +23,7 @@ namespace BeReal.Controllers
             _notification = notification;
             _fileManager = fileManager; 
         }
-        public async Task<IActionResult> Index(int page, string category, string subcategory, string search, DateTime startDate, DateTime endDate)
+        public async Task<IActionResult> Index(int page, string category, string subcategory, string search, DateTime startDate, DateTime endDate) //main page with all posts and filters
         {
             if (page < 1)
                 return RedirectToAction("Index", new { page = 1, search, category, subcategory, startDate, endDate });
@@ -65,7 +65,7 @@ namespace BeReal.Controllers
             var page = await _pagesOperations.GetPage("privacy");
             return View(_pagesOperations.GetPageViewModel(page!));
         }
-        public async Task<IActionResult> Profile(string id)
+        public async Task<IActionResult> Profile(string id) //display the profile of a user
         {
             var user = await _usersOperations.GetUserById(id);
             var userRole = await _usersOperations.GetUserRole(user);
@@ -86,10 +86,15 @@ namespace BeReal.Controllers
             return View(userVM);
         }
         [HttpPost]
-        public async Task<IActionResult> Download(int? id)
+        public async Task<IActionResult> Download(int? id) //download a file or image
         {
-            var (fileData, contentType, fileName) = await _fileManager.DownloadFile(id, _fileManager);
+            var (fileData, contentType, fileName) = await _fileManager.GetFile(id, _fileManager);
             return File(fileData, contentType, fileName);
+        }
+        public async Task<IActionResult> GetImage(int? id) //get the image to display
+        {
+            var (data, contentType, fileName) = await _fileManager.GetFile(id, _fileManager);
+            return File(data, contentType, fileName);
         }
     }
 }

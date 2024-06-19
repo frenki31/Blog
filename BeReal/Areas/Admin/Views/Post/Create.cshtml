@@ -44,11 +44,11 @@
                         </div>
                         <div class="mb-2">
                             <label>Image</label>
-                            <input asp-for="Image" type="file" class="custom-file" />
+                            <input asp-for="Image!.UploadedFile" type="file" class="custom-file" />
                         </div>
                         <div class="mb-2">
                             <label>Document</label>
-                            <input asp-for="File!.UploadedFile" type="file"  />
+                            <input asp-for="File!.UploadedFile" type="file"/>
                         </div>
                     </div>
                 </div>

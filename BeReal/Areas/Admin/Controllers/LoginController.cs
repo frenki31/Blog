@@ -21,7 +21,7 @@ namespace BeReal.Areas.Admin.Controllers
             _emailService = emailService;
         }
         [HttpGet("Login")]
-        public IActionResult Index(string url)
+        public IActionResult Index(string url) //Login
         {
             if (!HttpContext.User.Identity!.IsAuthenticated)
             {
@@ -85,15 +85,15 @@ namespace BeReal.Areas.Admin.Controllers
             {
                 await _usersOperations.GiveRoleToUser(user, Roles.User);
                 string token = await _usersOperations.GenerateEmailToken(user);
-                var confirmationLink = Url.Action("ConfirmEmail", "Login", new { area = "Admin", userId = user.Id, token }, Request.Scheme);
-                await _emailService.SendEmailAsync(rvm.Email!, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
+                var confirmationLink = Url.Action("ConfirmEmail", "Login", new { area = "Admin", userId = user.Id, token }, Request.Scheme); 
+                await _emailService.SendEmailAsync(rvm.Email!, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>."); //confirmation link in email
                 _notification.Success("User registered. Please check email for confirmation!");
                 return RedirectToAction("Index", "Post", new { area = "Admin" });
             }
             return View(rvm);
         }
         [HttpGet]
-        public async Task<IActionResult> ConfirmEmail(string userId, string token)
+        public async Task<IActionResult> ConfirmEmail(string userId, string token) //if email is confirmed by email this action is executed
         {
             var user = await _usersOperations.GetUserById(userId);
             var result = await _usersOperations.ConfirmEmail(user!,token);

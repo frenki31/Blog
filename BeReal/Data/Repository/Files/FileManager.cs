@@ -1,15 +1,15 @@
 ﻿using BeReal.Models;
-using BeReal.ViewModels;
 using Microsoft.EntityFrameworkCore;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Formats.Jpeg;
+using SixLabors.ImageSharp.Processing;
 namespace BeReal.Data.Repository.Files
 {
     public class FileManager : IFileManager
     {
-        private readonly string _imagePath;
         private readonly ApplicationDbContext _context;
         public FileManager(IConfiguration config, ApplicationDbContext context)
         {
-            _imagePath = config["Path:Images"]!;
             _context = context;
         }
         public List<int> Pages(int PageNumber, int PageCount)
@@ -40,54 +40,38 @@ namespace BeReal.Data.Repository.Files
             }
             return pages;
         }
-        public string GetImagePath(IFormFile formFile)
+        public async Task<BR_Document> GetFileInfo(IFormFile file, int id, List<string> suffixes)
         {
-            var folderPath = Path.Combine(_imagePath);
-            if (!Directory.Exists(folderPath))
-                Directory.CreateDirectory(folderPath);
-            var suffix = formFile.FileName.Substring(formFile.FileName.LastIndexOf('.'));
-            var uniqueFileName = $"img_{DateTime.Now.ToString("dd-MM-yyyy-HH-mm-ss")}{suffix}";
-            var filePath = Path.Combine(folderPath, uniqueFileName);
-            using (FileStream fileStream = File.Create(filePath))
-            {
-                formFile.CopyToAsync(fileStream).GetAwaiter().GetResult();
-            }
-            return uniqueFileName;
-        }
-        public bool RemoveImage(string image)
-        {
-            try
-            {
-                var file = Path.Combine(_imagePath, image);
-                if (File.Exists(file))
-                    File.Delete(file);
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-        }
-        public async Task<BR_Document> GetFileInfo(CreatePostViewModel vm)
-        {
-            List<string> suffixes = new List<string> { ".pdf", ".docx", ".xlsx", ".csv" };
-            string suffix = vm.File!.UploadedFile!.FileName.Substring(vm.File.UploadedFile.FileName.LastIndexOf('.'));
+            string suffix = file.FileName.Substring(file.FileName.LastIndexOf('.'));
             if (suffixes.Contains(suffix))
             {
-                string fileName = Path.GetFileName(vm.File.UploadedFile.FileName);
-                string contentType = vm.File.UploadedFile.ContentType;
-                using (var memoryStream = new MemoryStream())
+                string fileName = Path.GetFileName(file.FileName);
+                string contentType = file.ContentType;
+                byte[] data;
+                if (contentType.StartsWith("image/"))
                 {
-                    await vm.File.UploadedFile.CopyToAsync(memoryStream);
-                    return new BR_Document { IDBR_Document = vm.File!.Id, FileName = fileName, ContentType = contentType, Data = memoryStream.ToArray() };
+                    using var image = Image.Load(file.OpenReadStream());
+                    image.Mutate(x => x.Resize(800, 600)); 
+                    var quality = 75;
+                    var encoder = new JpegEncoder { Quality = quality };
+                    using var memoryStream = new MemoryStream();
+                    image.Save(memoryStream, encoder);
+                    data = memoryStream.ToArray();
                 }
+                else
+                {
+                    using var memoryStream = new MemoryStream();
+                    await file.CopyToAsync(memoryStream);
+                    data = memoryStream.ToArray();
+                }
+
+                return new BR_Document { IDBR_Document = id, FileName = fileName, ContentType = contentType, Data = data };
             }
             return new BR_Document { };
         }
         public void AddFile(BR_Document file) => _context.BR_Files.Add(file);
         public async Task<BR_Document?> GetFileById(int? id) => await _context.BR_Files.FirstOrDefaultAsync(f => f.IDBR_Document == id);
-        public async Task<(byte[], string, string)> DownloadFile(int? id, IFileManager _fileManager)
+        public async Task<(byte[], string, string)> GetFile(int? id, IFileManager _fileManager)
         {
             var file = await _fileManager.GetFileById(id);
             return (file!.Data!, file.ContentType!, file.FileName!);

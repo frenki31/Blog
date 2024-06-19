@@ -12,33 +12,18 @@
         <div class="card-body">
             <form asp-action="Privacy" asp-controller="Page" asp-area="Admin" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="ImageUrl" />
                 <div class="row mb-2">
-                    <div class="col-8">
-                        <div class="mb-2">
-                            <label>Title</label>
-                            <input asp-for="Title" type="text" class="form-control" />
-                        </div>
-                        <div class="mb-2">
-                            <label>Short Description</label>
-                            <input asp-for="ShortDescription" type="text" class="form-control" />
-                        </div>
-                        <div class="mb-2">
-                            <label>Description</label>
-                            <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
-                        </div>
+                    <div class="mb-2">
+                        <label>Title</label>
+                        <input asp-for="Title" type="text" class="form-control" />
                     </div>
-                    <div class="col-3">
-                        <div class="mb-2">
-                            @{
-                                string image = Model.ImageUrl == null ? "default_image.png" : Model.ImageUrl;
-                            }
-                            <img src="~/images/@image" class="img-fluid" id="thumbnail">
-                        </div>
-                        <div class="mb-2">
-                            <label>Image</label>
-                            <input asp-for="Image" type="file" class="custom-file" />
-                        </div>
+                    <div class="mb-2">
+                        <label>Short Description</label>
+                        <input asp-for="ShortDescription" type="text" class="form-control" />
+                    </div>
+                    <div class="mb-2">
+                        <label>Description</label>
+                        <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
                     </div>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Save</button>

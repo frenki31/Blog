@@ -35,12 +35,19 @@
                     {
                         <div class="col-lg-4 col-md-3 mb-4">
                             <div class="card border-0 shadow">
-                                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category!" asp-route-subcategory="@Model.SubCategory">
-                                    <img class="card-img-top" src="~/images/@(post.Image ?? "default_image.png")" style="object-fit:cover; height:100%; width:100%" />
+                                <a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="!">
+                                    @if (post.Image != null)
+                                    {
+                                        <img class="img-fluid d-none d-md-block" loading="lazy" src="@Url.Action("GetImage", "Home", new { id = post.Image.IDBR_Document })" alt="Image" style="object-fit:cover; height:100%; width:100%" />
+                                    }
+                                    else
+                                    {
+                                        <img class="img-fluid d-none d-md-block" src="~/images/default_image.png" style="object-fit:cover; height:100%; width:100%" />
+                                    }
                                 </a>
                                 <div class="card-body">
                                     <div class="row text-center" style="margin: 0px auto 10px 0px">
-                                        <h5 class="card-title text-center w-100"><a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="@Model.Category!" asp-route-subcategory="@Model.SubCategory">@post.Title</a></h5>
+                                        <h5 class="card-title text-center w-100"><a asp-action="Post" asp-controller="Blog" asp-route-slug="@post.Slug" asp-route-category="!">@post.Title</a></h5>
                                     </div>
                                 </div>
                             </div>

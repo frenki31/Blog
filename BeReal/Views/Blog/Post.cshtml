@@ -19,12 +19,20 @@
 <div class="container">
     <div class="row mt-5">
         <div class="col-lg-8 col-md-10 mx-auto">
-            @if (Model.Post.Document != null)
-            {
-                <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@Model.Post.Document.IDBR_Document">
-                    <input type="submit" class="btn btn-primary" value="Download" />
-                </form>
-            }
+            <div class="d-flex">
+                @if (Model.Post.Document != null)
+                {
+                    <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@Model.Post.Document.IDBR_Document" class="me-2">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-download"></i> File</button>
+                    </form>
+                }
+                @if (Model.Post.Image != null)
+                {
+                    <form method="post" asp-action="Download" asp-controller="Home" asp-route-id="@Model.Post.Image.IDBR_Document">
+                        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-download"></i> Image</button>
+                    </form>
+                }
+            </div>
             @{
                 await Html.RenderPartialAsync("_Comments");
             }

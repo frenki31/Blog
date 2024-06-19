@@ -1,16 +1,13 @@
 ﻿using BeReal.Models;
-using BeReal.ViewModels;
 
 namespace BeReal.Data.Repository.Files
 {
     public interface IFileManager
     {
-        List<int> Pages(int PageNumber, int PageCount);
-        string GetImagePath(IFormFile formFile);
-        bool RemoveImage(string image);
-        void AddFile(BR_Document file);
-        Task<BR_Document?> GetFileById(int? id);
-        Task<BR_Document> GetFileInfo(CreatePostViewModel vm);
-        Task<(byte[], string, string)> DownloadFile(int? id, IFileManager _fileManager);
+        List<int> Pages(int PageNumber, int PageCount); //pagination
+        void AddFile(BR_Document file); 
+        Task<BR_Document?> GetFileById(int? id); 
+        Task<BR_Document> GetFileInfo(IFormFile file, int id, List<string> suffixes); //return a file or image to add in db
+        Task<(byte[], string, string)> GetFile(int? id, IFileManager _fileManager); //return a file or image for download or display
     }
 }

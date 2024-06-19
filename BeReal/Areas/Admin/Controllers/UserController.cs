@@ -27,7 +27,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index() //displays all the users that have a confirmed email to admin
         {
             var users = await _usersOperations.GetUsers();
             var userViewModel = users.Select(x => new UserViewModel()
@@ -63,7 +63,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> Register(RegisterViewModel rvm)
+        public async Task<IActionResult> Register(RegisterViewModel rvm) //admin can add a new user
         {
             if (!ModelState.IsValid) return View(rvm);
             var validationResult = await _usersOperations.ValidateUser(rvm, _usersOperations);
@@ -92,7 +92,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpGet]
-        public async Task<IActionResult> ResetPassword(string id)
+        public async Task<IActionResult> ResetPassword(string id) 
         {
             var thisUser = await _usersOperations.GetUserById(id);
             if (thisUser == null) return View();
@@ -101,7 +101,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm)
+        public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm) //admin can reset the users' password
         {
             if (!ModelState.IsValid) return View(rpvm);
             var validatePasswordReset = await _usersOperations.ValidateResetPassword(rpvm, _usersOperations);
@@ -114,7 +114,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [Authorize(Roles = "Admin")]
         [HttpPost]
-        public async Task<IActionResult> ChangeRole(string id)
+        public async Task<IActionResult> ChangeRole(string id) //admin can change the role of a user (from user to admin or vice versa)
         {
             var thisUser = await _usersOperations.GetUserById(id);
             var userRole = await _usersOperations.GetUserRole(thisUser!);
@@ -127,7 +127,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [HttpGet("AccessDenied")]
         [Authorize]
-        public IActionResult AccessDenied()
+        public IActionResult AccessDenied() //displayed when a user is not admin and tries to access pages not authorized
         {
             return View();
         }

@@ -16,8 +16,7 @@ namespace BeReal.ViewModels
         public List<BR_Category>? Categories { get; set; }
         public string? Tags { get; set; }
         public string? Description { get; set; }
-        public string? ImageUrl { get; set; }
-        public IFormFile? Image { get; set; }
+        public FileViewModel? Image { get; set; }
         public FileViewModel? File { get; set; }
         public bool Approved { get; set; }
     }

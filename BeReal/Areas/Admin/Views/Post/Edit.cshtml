@@ -12,7 +12,7 @@
         <div class="card-body">
             <form asp-action="Edit" asp-controller="Post" asp-area="Admin" method="post" enctype="multipart/form-data">
                 <input type="hidden" asp-for="Id" />
-                <input type="hidden" asp-for="ImageUrl" />
+                <input type="hidden" asp-for="Image" />
                 <div class="row mb-2">
                     <div class="col-8">
                         <div class="mb-2">
@@ -42,22 +42,22 @@
                     </div>
                     <div class="col-3">
                         <div class="mb-2">
-                            @{
-                                if (Model.ImageUrl == null)
-                                {
-                                    <img src="~/images/default_image.png" class="img-fluid" id="thumbnail">
-                                }else{
-                                    <img src="~/images/@Model.ImageUrl" class="img-fluid" id="thumbnail">
-                                }
+                            @if (Model.Image != null)
+                            {
+                                <img class="img-fluid" src="@Url.Action("GetImage", "Home", new { area="", id = Model.Image.Id })" id="thumbnail"/>
+                            }
+                            else
+                            {
+                                <img class="img-fluid" src="~/images/default_image.png" id="thumbnail" />
                             }
                         </div>
                         <div class="mb-2">
                             <label>Image</label>
-                            <input asp-for="Image" type="file" class="custom-file" />
+                            <input asp-for="Image!.UploadedFile" type="file" class="custom-file" />
                         </div>
                         <div class="mb-2">
                             <label>Document</label>
-                            <input asp-for="File!.UploadedFile" type="file" />
+                            <input asp-for="File!.UploadedFile" type="file"/>
                         </div>
                     </div>
                 </div>

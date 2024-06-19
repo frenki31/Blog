@@ -20,7 +20,6 @@ namespace BeReal.Data.Repository.Pages
                 Title = page.Title,
                 ShortDescription = page.ShortDescription,
                 Description = page.Description,
-                ImageUrl = page.ImageUrl,
             };
             return vm;
         }
@@ -29,12 +28,6 @@ namespace BeReal.Data.Repository.Pages
             page.Title = vm.Title;
             page.ShortDescription = vm.ShortDescription;
             page.Description = vm.Description;
-            if (vm.Image != null)
-            {
-                if (page.ImageUrl != null)
-                    _fileManager.RemoveImage(page.ImageUrl);
-                page.ImageUrl = _fileManager.GetImagePath(vm.Image);
-            }
             return page;
         }
         //Save Changes

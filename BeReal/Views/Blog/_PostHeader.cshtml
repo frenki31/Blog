@@ -1,6 +1,6 @@
 ﻿@model BlogPostViewModel
 @{
-    string imageUrl = Model.Post!.Image == null ? "/blog/assets/img/post-bg.jpg" : "/images/" + Model.Post.Image;
+    var imageUrl = Model.Post!.Image == null ? "/blog/assets/img/post-bg.jpg" : Url.Action("GetImage", "Home", new { id = Model.Post.Image.IDBR_Document });
 }
 <header class="masthead" style="background-image: url('@imageUrl')">
     <div class="container position-relative px-4 px-lg-5">

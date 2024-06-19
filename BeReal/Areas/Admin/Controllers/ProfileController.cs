@@ -18,7 +18,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [HttpGet]
         [Authorize]
-        public async Task<IActionResult> EditProfile(string id)
+        public async Task<IActionResult> EditProfile(string id) 
         {
             var user = await _usersOperations.GetUserById(id);
             if (user == null) return View();
@@ -33,7 +33,7 @@ namespace BeReal.Areas.Admin.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> EditProfile(ProfileViewModel rvm, string id)
+        public async Task<IActionResult> EditProfile(ProfileViewModel rvm, string id) 
         {
             var oldUser = await _usersOperations.GetUserByUsername(rvm.Username!);
             if (!ModelState.IsValid)
@@ -89,7 +89,7 @@ namespace BeReal.Areas.Admin.Controllers
                 return View(rpvm);
             }
             _notification.Success("Password changed successfully");
-            return RedirectToAction("Profile", "Home", new { area = "", id= id});
+            return RedirectToAction("Profile", "Home", new { area = "", id});
         }
     }
 }

@@ -12,7 +12,5 @@ namespace BeReal.ViewModels
         public int? NumberPosts { get; set; }
         public int? NumberComments { get; set; }
         public List<BR_Post>? Posts { get; set; }
-        public string? Category { get; set; }
-        public string? SubCategory { get; set; }
     }
 }

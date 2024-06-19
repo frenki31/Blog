@@ -24,7 +24,7 @@ namespace BeReal.Controllers
         }
         [HttpGet("[controller]/{category?}/{subcategory?}/{slug}", Order = 1)]
         [HttpGet("[controller]/{category?}/{slug}", Order = 2)]
-        public async Task<IActionResult> Post(string category, string subcategory, string slug)
+        public async Task<IActionResult> Post(string category, string subcategory, string slug) //display a single post with image and comments
         {
             string url = "" ;
             if (!string.IsNullOrEmpty(category) && !string.IsNullOrEmpty(subcategory))
@@ -39,7 +39,7 @@ namespace BeReal.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> Comment(BlogPostViewModel vm)
+        public async Task<IActionResult> Comment(BlogPostViewModel vm) //comment on a post
         {
             if (vm.Post is null || vm.Comment is null) return RedirectToAction("Index", "Home");  
             var comment = vm.Comment;
@@ -58,7 +58,7 @@ namespace BeReal.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> EditComment(BlogPostViewModel vm)
+        public async Task<IActionResult> EditComment(BlogPostViewModel vm) //edit your comment (or others if you are admin)
         {
             if (vm.Comment is null) return RedirectToAction("Index", "Home");
             var post = await _postsOperations.GetPostById(vm.Post!.IDBR_Post);
@@ -78,7 +78,7 @@ namespace BeReal.Controllers
         }
         [HttpPost]
         [Authorize]
-        public async Task<IActionResult> DeleteComment(int id,string slug, string url)
+        public async Task<IActionResult> DeleteComment(int id,string slug, string url) //delete your comment (or others if you are admin)
         {
             var post = await _postsOperations.GetPostBySlug(slug);
             var Comment = await _commentsOperations.GetCommentWithReplies(id);

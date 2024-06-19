@@ -27,12 +27,12 @@ namespace BeReal.Areas.Admin.Controllers
             _usersOperations = usersOperations;
         }
         [HttpGet]
-        public async Task<IActionResult> Index(int? page)
+        public async Task<IActionResult> Index(int? page) //If user is admin all the posts are displayed in the main page else only user posts
         {
             var posts = new List<BR_Post>();
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
-            posts = loggedUserRole[0] == Roles.Admin ? await _postsOperations.GetAllPosts() : await _postsOperations.GetPostsOfUser(loggedUser!.Id);
+            posts = loggedUserRole[0] == Roles.Admin ? await _postsOperations.GetAllPosts() : await _postsOperations.GetPostsOfUser(loggedUser!);
             var pageSize = 5;
             var pageNumber = (page ?? 1);
             var postVms = posts.Select(x => new PostViewModel()
@@ -58,15 +58,22 @@ namespace BeReal.Areas.Admin.Controllers
             return View(vm);
         }
         [HttpPost]
-        public async Task<IActionResult> Create(CreatePostViewModel model)
+        public async Task<IActionResult> Create(CreatePostViewModel model) 
         {
             if (!ModelState.IsValid) return View(model); 
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             BR_Document? file = null;
             if (model.File != null)
             {
-                file = await _fileManager.GetFileInfo(model);
+                file = await _fileManager.GetFileInfo(model.File.UploadedFile!, model.File.Id, new List<string>() {".pdf", ".docx", ".xlsx", ".csv"});
                 _fileManager.AddFile(file);
+                await _postsOperations.SaveChanges();
+            }
+            BR_Document? image = null;
+            if (model.Image != null)
+            {
+                image = await _fileManager.GetFileInfo(model.Image.UploadedFile!, model.Image.Id, new List<string>() { ".jpg", ".jpeg", ".png" });
+                _fileManager.AddFile(image);
                 await _postsOperations.SaveChanges();
             }
             var post = new BR_Post();
@@ -74,12 +81,8 @@ namespace BeReal.Areas.Admin.Controllers
             post.ApplicationUser = loggedUser;
             post.Author = loggedUser!.FirstName + " " + loggedUser.LastName;
             post.Document = file;
-            if (post.Title != null)
-            {
-                string slug = model.Title!.Trim().Replace(" ", "-");
-                post.Slug = slug + "-" + Guid.NewGuid();
-            }
-            post.Image = model.Image != null ? _fileManager.GetImagePath(model.Image) : null;
+            post.Image = image;
+            post.Slug = post.Title != null ? model.Title!.Trim().Replace(" ", "-") + "-" + Guid.NewGuid() : null;
             string message = post.Approved ? "Post Created Successfully" : "Waiting for approval";
             _postsOperations.AddPost(post);
             _notification.Success(message);
@@ -89,7 +92,7 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpGet]
         public async Task<IActionResult> Edit(int id)
         {
-            var post = await _postsOperations.GetPostWithDocById(id);
+            var post = await _postsOperations.GetPostWithFilesById(id);
             if (post == null) return View();
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
@@ -106,29 +109,27 @@ namespace BeReal.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(vm);
             var loggedUser = await _usersOperations.GetLoggedUser(User);
-            var post = await _postsOperations.GetPostWithDocById(vm.Id);
+            var post = await _postsOperations.GetPostWithFilesById(vm.Id);
             if (post == null) return View();
             post = await _postsOperations.GetPostValues(post, vm, loggedUser!, _usersOperations);
-            post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm) : post.Document;
-            if (vm.Image != null)
-            {
-                if (post.Image != null) 
-                    _fileManager.RemoveImage(post.Image);
-                post.Image = _fileManager.GetImagePath(vm.Image);
-            }
+            post.Document = vm.File != null ? await _fileManager.GetFileInfo(vm.File.UploadedFile!, vm.File.Id, new List<string>() { ".pdf", ".docx", ".xlsx", ".csv" }) : post.Document;
+            post.Image = vm.Image != null ? await _fileManager.GetFileInfo(vm.Image.UploadedFile!, vm.Image.Id, new List<string>() { ".jpg", ".jpeg", ".png" }) : post.Image;
             string message = post.Approved == true ? "Post Updated Successfully" : "Post Updated. Waiting for approval";
             await _postsOperations.SaveChanges();
             _notification.Success(message);
             return RedirectToAction("Index", "Post", new { area = "Admin" });
         }
         [HttpPost]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> Delete(int id) // Deletes the post with the comments, document and image related
         {
             var post = await _postsOperations.GetPostById(id);
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == post!.ApplicationUser!.Id)
             {
+                _postsOperations.removePostComments(post!);
+                _postsOperations.removePostDocument(post!);
+                _postsOperations.removePostImage(post!);
                 _postsOperations.RemovePost(post!);
                 await _postsOperations.SaveChanges();
                 _notification.Success("Post Deleted Successfully");
@@ -137,14 +138,8 @@ namespace BeReal.Areas.Admin.Controllers
             return View();
         }
         [HttpPost]
-        public async Task<IActionResult> Download(int? id)
-        {
-            var (fileData, contentType, fileName) = await _fileManager.DownloadFile(id,_fileManager);
-            return File(fileData, contentType, fileName);
-        }
-        [HttpPost]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Approve(int id)
+        public async Task<IActionResult> Approve(int id) //Admin approves the post
         {
             var post = await _postsOperations.GetPostById(id);
             if (post == null)
