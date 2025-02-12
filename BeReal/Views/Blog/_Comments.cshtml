@@ -4,6 +4,7 @@
 @{
     var authUser = await userOperations.GetLoggedUser(User);
 }
+<link href="~/css/edit.css" rel="stylesheet" />
 <h3 class="mb-2 mt-3"> 
     @{ string number = Model.Post!.Comments!.Count() != 1 ? $"{Model.Post.Comments!.Count()} Comments" : "1 Comment"; }
     @number
@@ -70,12 +71,17 @@ else
                             <input asp-for="Post!.IDBR_Post" readonly hidden />
                             <input asp-for="Comment!.IDBR_Comment" value="@comment.IDBR_Comment" readonly hidden />
                             <div class="form-group">
-                                <label>Edit your comment</label>
-                                <textarea asp-for="Comment!.Message" class="form-control" rows="3">@comment.Message</textarea>
+                                <label for="edit-comment">Edit your comment</label>
+                                <div class="textarea-like">
+                                    <input id="edit-comment" class="form-control" asp-for="Comment!.Message" type="text" value="@comment.Message" />
+                                </div>
+                            </div>
+                            <div class="form-group">
                                 <button class="btn btn-outline-primary post-btn" type="submit">Update</button>
                             </div>
                         </form>
                     </div>
+                    
                 }
             }
             @if (comment.Replies!.Any())
@@ -104,12 +110,17 @@ else
                                     </div>
                                     <div class="collapse" id="@($"editReply{comment.IDBR_Comment}")">
                                         <form asp-controller="Blog" asp-action="EditComment" method="post">
+                                            <input asp-for="ReturnUrl" readonly hidden />
                                             <input asp-for="Comment!.IDBR_Comment" value="@reply.IDBR_Comment" readonly hidden />
                                             <input asp-for="Post!.IDBR_Post" readonly hidden />
                                             <input asp-for="Comment!.ParentComment!.IDBR_Comment" value="@comment.IDBR_Comment" readonly hidden />
                                             <div class="form-group">
-                                                <label>Edit your comment</label>
-                                                <textarea asp-for="Comment!.Message" class="form-control" rows="3">@comment.Message</textarea>
+                                                <label for="edit-comment">Edit your comment</label>
+                                                <div class="textarea-like">
+                                                    <input id="edit-comment" class="form-control" asp-for="Comment!.Message" type="text" value="@comment.Message" />
+                                                </div>
+                                            </div>
+                                            <div class="form-group">
                                                 <button class="btn btn-outline-primary post-btn" type="submit">Update</button>
                                             </div>
                                         </form>

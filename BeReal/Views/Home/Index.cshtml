@@ -12,18 +12,21 @@
         @{
             await Html.RenderPartialAsync("_Categories");
         }
-        <div class="col-md-9">
-            <form asp-controller="Home" asp-action="Index" class="form-horizontal m-auto transparent-form">
+        <div class="col-md-9 mt-3">
+            <form asp-controller="Home" asp-action="Index" asp-route-startDate="@Model.StartDate" asp-route-endDate="@Model.EndDate" class="form-horizontal m-auto transparent-form">
                 <div class="input-group input-group-sm">
-                    <input asp-for="StartDate" type="date" class="date-picker form-control"/>
+                    <input type="hidden" asp-for="Category" value="@Model.Category" />
+                    <input type="hidden" asp-for="SubCategory" value="@Model.SubCategory" />
+                    <input asp-for="Search" value="@Model.Search" hidden />
+                    <input asp-for="StartDate" value="@Model.StartDate" type="date" class="date-picker form-control" placeholder="Start Date (mm/dd/yyyy)" />
                     <span class="input-group-text"><b><i class="fa-solid fa-arrow-right"></i></b></span>
-                    <input asp-for="EndDate" type="date" class="date-picker form-control"/>
-                    <div class="input-group-append">
+                    <input asp-for="EndDate" value="@Model.EndDate" type="date" class="date-picker form-control" placeholder="End Date (mm/dd/yyyy)" />
+                    <div class="input-group-append" style="border-bottom: 1px solid black">
                         <button type="submit" class="btn btn-default"><i class="fa-solid fa-search"></i></button> 
                     </div>
                 </div>
             </form>
-            <hr />
+            <hr/>
             @{
                 await Html.RenderPartialAsync("_IndexPosts");
             }
@@ -32,8 +35,8 @@
                     @if (Model.PageNumber > 1)
                     {
                         <li class="page-item">
-                            <a aria-label="previous" class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                               asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber-1)">
+                            <a aria-label="previous" class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search" asp-route-startDate="@Model.StartDate" asp-route-endDate="@Model.EndDate"
+                               asp-route-subcategory="@Model.SubCategory" asp-route-page="@(Model.PageNumber-1)">
                                 <i class="fa-solid fa-chevron-left"></i>
                             </a>
                         </li>
@@ -48,16 +51,16 @@
                         {
                             string active = page == Model.PageNumber ? "active" : "";
                             <li class="page-item @active">
-                                <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                                   asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-end="@Model.EndDate.ToString("MMMM d, yyyy hh:mm tt")" asp-route-page="@(page)">@(page)</a>
+                                <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search" asp-route-startDate="@Model.StartDate" asp-route-endDate="@Model.EndDate"
+                                   asp-route-subcategory="@Model.SubCategory" asp-route-page="@(page)">@(page)</a>
                             </li>
                         }
                     }
                     @if (Model.NextPage)
                     {
                         <li class="page-item">
-                            <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search"
-                               asp-route-subcategory="@Model.SubCategory" asp-route-start="@Model.StartDate" asp-route-end="@Model.EndDate" asp-route-page="@(Model.PageNumber+1)"><i class="fa-solid fa-chevron-right"></i></a>
+                            <a class="btn btn-secondary" asp-action="Index" asp-controller="Home" asp-route-category="@Model.Category" asp-route-search="@Model.Search" asp-route-startDate="@Model.StartDate" asp-route-endDate="@Model.EndDate"
+                               asp-route-subcategory="@Model.SubCategory" asp-route-page="@(Model.PageNumber+1)"><i class="fa-solid fa-chevron-right"></i></a>
                         </li>
                     }
                 </ul>

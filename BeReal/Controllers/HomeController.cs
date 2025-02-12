@@ -23,31 +23,12 @@ namespace BeReal.Controllers
             _notification = notification;
             _fileManager = fileManager; 
         }
-        public async Task<IActionResult> Index(int page, string category, string subcategory, string search, DateTime startDate, DateTime endDate) //main page with all posts and filters
+        public async Task<IActionResult> Index(int page, string category, string subcategory, string search, string startDate, string endDate) //main page with all posts and filters
         {
-            if (page < 1)
-                return RedirectToAction("Index", new { page = 1, search, category, subcategory, startDate, endDate });
+            if (page < 1) return RedirectToAction("Index", new { page = 1, search, category, subcategory, startDate, endDate });
             var home = await _pagesOperations.GetPage("home");
-            var query = _postsOperations.GetFilteredPosts(category, subcategory, search, startDate, endDate);
-            int pageSize = 5;
-            int skip = pageSize * (page - 1);
-            int postCount = query.Count();
-            int pageCount = (int)Math.Ceiling((double)postCount / pageSize);
-            var viewModel = new HomeViewModel()
-            {
-                Page = _pagesOperations.GetPageViewModel(home!),
-                Category = category,
-                SubCategory = subcategory,
-                Search = search,
-                StartDate = startDate,
-                EndDate = endDate,
-                PageNumber = page,
-                NextPage = postCount > skip + pageSize,
-                PageCount = pageCount,
-                Categories = await _postsOperations.GetCategories(),
-                Posts = await _postsOperations.GetPostsWithPagination(query, skip, pageSize),
-                Pages = _fileManager.Pages(page, pageCount),
-            };
+            var homePage = _pagesOperations.GetPageViewModel(home!);
+            var viewModel = await _postsOperations.GetHomeViewModel(homePage,category,subcategory,search,startDate,endDate,page,_postsOperations,_fileManager);
             return View(viewModel);
         }
         public async Task<IActionResult> About()

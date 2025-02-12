@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace BeReal.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240612102031_Reviewed")]
-    partial class Reviewed
+    [Migration("20250211202546_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,27 @@ namespace BeReal.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
+
+            modelBuilder.Entity("BeReal.Models.BR_Category", b =>
+                {
+                    b.Property<int>("IDBR_Category")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("IDBR_Category"));
+
+                    b.Property<string>("Name")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("ParentCategoryIDBR_Category")
+                        .HasColumnType("int");
+
+                    b.HasKey("IDBR_Category");
+
+                    b.HasIndex("ParentCategoryIDBR_Category");
+
+                    b.ToTable("BR_Categories");
+                });
 
             modelBuilder.Entity("BeReal.Models.BR_Comment", b =>
                 {
@@ -56,7 +77,7 @@ namespace BeReal.Migrations
 
                     b.HasIndex("PostIDBR_Post");
 
-                    b.ToTable("Comments");
+                    b.ToTable("BR_Comments");
                 });
 
             modelBuilder.Entity("BeReal.Models.BR_Document", b =>
@@ -78,7 +99,7 @@ namespace BeReal.Migrations
 
                     b.HasKey("IDBR_Document");
 
-                    b.ToTable("Files");
+                    b.ToTable("BR_Files");
                 });
 
             modelBuilder.Entity("BeReal.Models.BR_Page", b =>
@@ -92,9 +113,6 @@ namespace BeReal.Migrations
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("ImageUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("ShortDescription")
                         .HasColumnType("nvarchar(max)");
 
@@ -106,7 +124,7 @@ namespace BeReal.Migrations
 
                     b.HasKey("IDBR_Page");
 
-                    b.ToTable("Pages");
+                    b.ToTable("BR_Pages");
                 });
 
             modelBuilder.Entity("BeReal.Models.BR_Post", b =>
@@ -135,8 +153,8 @@ namespace BeReal.Migrations
                     b.Property<int?>("DocumentIDBR_Document")
                         .HasColumnType("int");
 
-                    b.Property<string>("Image")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("ImageIDBR_Document")
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("PublicationDate")
                         .HasColumnType("datetime2");
@@ -159,7 +177,9 @@ namespace BeReal.Migrations
 
                     b.HasIndex("DocumentIDBR_Document");
 
-                    b.ToTable("Posts");
+                    b.HasIndex("ImageIDBR_Document");
+
+                    b.ToTable("BR_Posts");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>
@@ -382,6 +402,15 @@ namespace BeReal.Migrations
                     b.HasDiscriminator().HasValue("BR_ApplicationUser");
                 });
 
+            modelBuilder.Entity("BeReal.Models.BR_Category", b =>
+                {
+                    b.HasOne("BeReal.Models.BR_Category", "ParentCategory")
+                        .WithMany("Subcategories")
+                        .HasForeignKey("ParentCategoryIDBR_Category");
+
+                    b.Navigation("ParentCategory");
+                });
+
             modelBuilder.Entity("BeReal.Models.BR_Comment", b =>
                 {
                     b.HasOne("BeReal.Models.BR_ApplicationUser", "ApplicationUser")
@@ -413,9 +442,15 @@ namespace BeReal.Migrations
                         .WithMany()
                         .HasForeignKey("DocumentIDBR_Document");
 
+                    b.HasOne("BeReal.Models.BR_Document", "Image")
+                        .WithMany()
+                        .HasForeignKey("ImageIDBR_Document");
+
                     b.Navigation("ApplicationUser");
 
                     b.Navigation("Document");
+
+                    b.Navigation("Image");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -467,6 +502,11 @@ namespace BeReal.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("BeReal.Models.BR_Category", b =>
+                {
+                    b.Navigation("Subcategories");
                 });
 
             modelBuilder.Entity("BeReal.Models.BR_Comment", b =>

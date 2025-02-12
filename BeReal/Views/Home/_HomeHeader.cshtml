@@ -1,0 +1,26 @@
+﻿@model HomeViewModel
+<link href="~/css/styles.css" rel="stylesheet" />
+<header class="masthead" style="background-image: url('/blog/assets/img/home-bg.jpg')">
+    <div class="container position-relative px-4 px-lg-5">
+        <div class="row gx-4 gx-lg-5 justify-content-center">
+            <div class="col-md-10 col-lg-8 col-xl-7">
+                <div class="site-heading">
+                    <h1>@Model.Page!.Title</h1>
+                    <span class="subheading">@Model.Page.ShortDescription</span>
+                    <form asp-controller="Home" asp-action="Index" class="form-horizontal mt-4 transparent-form">
+                        <div class="input-group input-group-sm mb-3">
+                            <input asp-for="Category" value="@Model.Category" hidden />
+                            <input asp-for="SubCategory" value="@Model.SubCategory" hidden />
+                            <input asp-for="StartDate" value="@Model.StartDate" hidden />
+                            <input asp-for="EndDate" value="@Model.EndDate" hidden />
+                            <input asp-for="Search" value="@Model.Search" placeholder="Search for a post..." class="form-control" />
+                            <div class="input-group-append" style="border-bottom: 1px solid white">
+                                <button type="submit" class="btn btn-default"><i class="fa-solid fa-search text-white"></i></button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</header>

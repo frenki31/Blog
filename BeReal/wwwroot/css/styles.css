@@ -25,9 +25,6 @@
         border-bottom: 1px solid black;
         color: black;
     }
-    .transparent-form .input-group-append {
-        border-bottom: 1px solid black;
-    }
         .transparent-form .input-group-append:hover {
             background-color: #f8f9fa;
         }

@@ -60,7 +60,11 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(CreatePostViewModel model) 
         {
-            if (!ModelState.IsValid) return View(model); 
+            if (model.Title is null || model.ShortDescription is null || model.Category is null || model.Description is null)
+            {
+                _notification.Warning("Please fill in all the required fields");
+                return View(model);
+            }
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             BR_Document? file = null;
             if (model.File != null)
@@ -107,7 +111,11 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Edit(CreatePostViewModel vm) 
         {
-            if (!ModelState.IsValid) return View(vm);
+            if (vm.Title is null || vm.ShortDescription is null || vm.Category is null || vm.Description is null)
+            {
+                _notification.Warning("Please fill in all the required fields");
+                return View(vm);
+            }
             var loggedUser = await _usersOperations.GetLoggedUser(User);
             var post = await _postsOperations.GetPostWithFilesById(vm.Id);
             if (post == null) return View();
@@ -127,9 +135,18 @@ namespace BeReal.Areas.Admin.Controllers
             var loggedUserRole = await _usersOperations.GetUserRole(loggedUser!);
             if (loggedUserRole[0] == Roles.Admin || loggedUser!.Id == post!.ApplicationUser!.Id)
             {
-                _postsOperations.removePostComments(post!);
-                _postsOperations.removePostDocument(post!);
-                _postsOperations.removePostImage(post!);
+                if (post!.Comments != null)
+                {
+                    _postsOperations.removePostComments(post!);
+                }
+                if (post.Document != null)
+                {
+                    _postsOperations.removePostDocument(post!);
+                }
+                if (post.Image != null)
+                {
+                    _postsOperations.removePostImage(post!);
+                }
                 _postsOperations.RemovePost(post!);
                 await _postsOperations.SaveChanges();
                 _notification.Success("Post Deleted Successfully");

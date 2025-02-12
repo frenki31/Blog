@@ -25,6 +25,7 @@ namespace BeReal.Data.Repository.Users
         Task<SignInResult> SignIn(string username, string password, bool remember, bool trueOrFalse);
         Task<string> ValidateUser(RegisterViewModel rvm, IUsersOperations _usersOperations); //check all the validation of email, username
         Task<string> ValidateResetPassword(ResetPasswordViewModel rpvm, IUsersOperations _usersOperations);
+        Task<string> ValidateEditProfile(ProfileViewModel rvm, IUsersOperations _usersOperations, BR_ApplicationUser oldUser);
         Task<string> GenerateEmailToken(BR_ApplicationUser user); 
         Task<IdentityResult> ConfirmEmail(BR_ApplicationUser user, string token);
         Task Logout();

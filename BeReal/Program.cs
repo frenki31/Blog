@@ -11,6 +11,7 @@ using BeReal.Models;
 using BeReal.Utilities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using SendGrid.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,11 +23,12 @@ builder.Services.AddIdentity<BR_ApplicationUser, IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>()
     .AddDefaultTokenProviders();
 
-var configurationBuilder = new ConfigurationBuilder().AddUserSecrets<Program>().Build(); 
+var configurationBuilder = new ConfigurationBuilder().AddUserSecrets<Program>().Build();
 
 builder.Services.Configure<SendGridSettings>(builder.Configuration.GetSection("SendGridSettings"));
 builder.Services.AddSendGrid(options =>
 {
+    //options.ApiKey = builder.Configuration.GetSection("SendGridSettings").GetValue<string>("ApiKey");
     options.ApiKey = configurationBuilder["ApiKey"];
 });
 
@@ -41,8 +43,8 @@ builder.Services.AddTransient<IFileManager, FileManager>();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    options.LoginPath = "/login";
-    options.AccessDeniedPath = "/accessDenied";
+    options.LoginPath = "/Login";
+    options.AccessDeniedPath = "/AccessDenied";
     options.Cookie.Name = "AspNetCore.Identity.Application";
     options.ExpireTimeSpan = TimeSpan.FromMinutes(30);
     options.SlidingExpiration = true;
