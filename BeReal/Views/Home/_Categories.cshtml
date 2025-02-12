@@ -1,5 +1,26 @@
 ﻿@model HomeViewModel
-<div class="col-md-3 mb-4">
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb bg-light border rounded-pill px-3 py-2 mb-0">
+        <li class="breadcrumb-item">
+            <a asp-controller="Home" asp-action="Index" class="text-dark">Home</a>
+        </li>
+        @if (!string.IsNullOrEmpty(Model.Category))
+        {
+            <li class="breadcrumb-item">
+                <a asp-controller="Home" asp-action="Index" asp-route-category="@Model.Category" class="text-dark">
+                    @Model.Category
+                </a>
+            </li>
+            @if (!string.IsNullOrEmpty(Model.SubCategory))
+            {
+                <li class="breadcrumb-item active text-muted" aria-current="page">
+                    @Model.SubCategory
+                </li>
+            }
+        }
+    </ol>
+</nav>
+<div class="col-md-3 mb-4 mt-3">
     <div class="card">
         <div class="d-grid gap-2">
             <button class="btn btn-default dropdown-toggle" type="button" id="categoriesDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -10,6 +31,9 @@
                 {
                     <li>
                         <form asp-controller="Home" asp-action="Index" method="get" class="m-0 p-0">
+                            <input asp-for="StartDate" value="@Model.StartDate" hidden />
+                            <input asp-for="EndDate" value="@Model.EndDate" hidden />
+                            <input asp-for="Search" value="@Model.Search" hidden />
                             <input type="hidden" asp-for="Category" value="@category.Name" />
                             <input type="submit" value="@category.Name" class="dropdown-item" />
                         </form>
@@ -22,6 +46,9 @@
                                         <form asp-controller="Home" asp-action="Index" method="get">
                                             <input type="hidden" asp-for="Category" value="@category.Name" />
                                             <input type="hidden" asp-for="SubCategory" value="@subcategory.Name" />
+                                            <input asp-for="StartDate" value="@Model.StartDate" hidden />
+                                            <input asp-for="EndDate" value="@Model.EndDate" hidden />
+                                            <input asp-for="Search" value="@Model.Search" hidden />
                                                 <input type="submit" value="@subcategory.Name" class="dropdown-item" />
                                         </form>
                                     </li>

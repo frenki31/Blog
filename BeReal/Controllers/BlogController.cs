@@ -22,19 +22,13 @@ namespace BeReal.Controllers
             _commentsOperations = commentsOperations;
             _usersOperations = usersOperations;
         }
-        [HttpGet("[controller]/{category?}/{subcategory?}/{slug}", Order = 1)]
-        [HttpGet("[controller]/{category?}/{slug}", Order = 2)]
-        public async Task<IActionResult> Post(string category, string subcategory, string slug) //display a single post with image and comments
+        [HttpGet("[controller]/{slug}")]
+        public async Task<IActionResult> Post(string slug) //display a single post with image and comments
         {
-            string url = "" ;
-            if (!string.IsNullOrEmpty(category) && !string.IsNullOrEmpty(subcategory))
-                url = Url.Action("Post", new { category, subcategory, slug })!;
-            else if (!string.IsNullOrEmpty(category))
-                url = Url.Action("Post", new { category, slug })!;
-            var post = await _postsOperations.GetBlogPost(slug, category, subcategory);
+            var post = await _postsOperations.GetBlogPost(slug);
             if (post == null)
                 return NotFound();
-            var vm = new BlogPostViewModel() { Post = post, ReturnUrl = url };
+            var vm = new BlogPostViewModel() { Post = post, ReturnUrl = Url.Action("Post", new { slug }) };
             return View(vm);
         }
         [HttpPost]

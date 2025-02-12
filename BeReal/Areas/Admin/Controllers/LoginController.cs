@@ -33,10 +33,14 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost("Login")]
         public async Task<IActionResult> Index(LoginViewModel lvm)
         {
-            if (!ModelState.IsValid) return View(lvm);
-            var username = await _usersOperations.GetUserByUsername(lvm.Username!);
+            if (lvm.Username is null || lvm.Password is null)
+            {
+                _notification.Warning("Please fill all the fields");
+                return View(lvm);
+            }
+            var username = await _usersOperations.GetUserByUsername(lvm.Username);
             if (username == null) return View(lvm);
-            var checkPassword = await _usersOperations.CheckPasswordForLogin(username, lvm.Password!);
+            var checkPassword = await _usersOperations.CheckPasswordForLogin(username, lvm.Password);
             if (!checkPassword)
             {
                 _notification.Error("Password does not match!");
@@ -62,11 +66,6 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel rvm)
         {
-            if (!ModelState.IsValid)
-            {
-                _notification.Warning("Please fill in all the fields");
-                return View(rvm);
-            }
             var validateUser = await _usersOperations.ValidateUser(rvm,_usersOperations);
             if (validateUser != null)
             {

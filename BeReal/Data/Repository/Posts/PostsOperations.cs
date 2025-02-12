@@ -3,6 +3,7 @@ using BeReal.Models;
 using BeReal.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using BeReal.Utilities;
+using BeReal.Data.Repository.Files;
 
 namespace BeReal.Data.Repository.Posts
 {
@@ -13,9 +14,9 @@ namespace BeReal.Data.Repository.Posts
             _context = context;
         }
         //Posts
-        public IQueryable<BR_Post> GetFilteredPosts(string category,string subcategory, string search, DateTime startDate, DateTime endDate)
+        public async Task<HomeViewModel> GetHomeViewModel(PageViewModel homePage, string category,string subcategory, string search, string startDate, string endDate, int page, IPostsOperations _postsOperations, IFileManager _fileManager)
         {
-            var query = _context.BR_Posts.AsQueryable();
+            var query = _context.BR_Posts.AsNoTracking().AsQueryable();
             //order all approved posts by date desc
             query = query.Include(x => x.ApplicationUser)
                          .Include(x => x.Document)
@@ -23,31 +24,70 @@ namespace BeReal.Data.Repository.Posts
                          .OrderByDescending(x => x.PublicationDate)
                          .Where(x => x.Approved == true);
             //filter by category
-            query = string.IsNullOrEmpty(category) ? query : query.Where(post => post.Category!.Contains(category));
+            query = string.IsNullOrEmpty(category) ? query : query.Where(post => EF.Functions.Like(post.Category, $"%{category}%"));
             //filter by subcategory
-            query = string.IsNullOrEmpty(subcategory) ? query : query.Where(post => post.Category!.Contains(subcategory));
+            query = string.IsNullOrEmpty(subcategory) ? query : query.Where(post => EF.Functions.Like(post.Category, $"%{subcategory}%"));
             //filter by searchword
-            query = string.IsNullOrEmpty(search) ? query : query.Where(x => x.Title!.Contains(search) || x.Author!.Contains(search) ||
-                                                                       x.ShortDescription!.Contains(search) || x.Description!.Contains(search));
+            query = string.IsNullOrEmpty(search) ? query : query.Where(x => EF.Functions.Like(x.Title, $"%{search}%") || EF.Functions.Like(x.Author, $"%{search}%") ||
+                                                                       EF.Functions.Like(x.ShortDescription, $"%{search}%") || EF.Functions.Like(x.Description, $"%{search}%"));
             //filter by date
-            if (startDate > DateTime.MinValue && endDate > DateTime.MinValue && startDate < endDate)
+            DateTime? actualStartDate = null;
+            DateTime? actualEndDate = null;
+            if (!string.IsNullOrEmpty(startDate))
             {
-                query = query.Where(x => x.PublicationDate >= startDate && x.PublicationDate <= endDate);
+                try {
+                    actualStartDate = DateTime.Parse(startDate);
+                }
+                catch (FormatException) {
+                    Console.WriteLine($"Error parsing start date: {startDate}");
+                }
             }
-            else if (startDate > DateTime.MinValue && endDate == DateTime.MinValue)
+            if (!string.IsNullOrEmpty(endDate))
             {
-                query = query.Where(x => x.PublicationDate >= startDate);
+                try {
+                    actualEndDate = DateTime.Parse(endDate);
+                }
+                catch (FormatException) {
+                    Console.WriteLine($"Error parsing end date: {endDate}");
+                }
             }
-            else if (endDate > DateTime.MinValue && startDate == DateTime.MinValue)
+            if (actualStartDate > DateTime.MinValue && actualEndDate > DateTime.MinValue)
             {
-                query = query.Where(x => x.PublicationDate <= endDate);
+                query = query.Where(x => x.PublicationDate >= actualStartDate && x.PublicationDate <= actualEndDate);
             }
-            return query;
+            else if (actualStartDate > DateTime.MinValue)
+            {
+                query = query.Where(x => x.PublicationDate >= actualStartDate);
+            }
+            else if (actualEndDate > DateTime.MinValue)
+            {
+                query = query.Where(x => x.PublicationDate <= actualEndDate);
+            }
+            int pageSize = 5;
+            int skip = pageSize * (page - 1);
+            int postCount = query.Count();
+            int pageCount = (int)Math.Ceiling((double)postCount / pageSize);
+            var viewModel = new HomeViewModel()
+            {
+                Page = homePage,
+                Category = category,
+                SubCategory = subcategory,
+                Search = search,
+                StartDate = startDate,
+                EndDate = endDate,
+                PageNumber = page,
+                NextPage = postCount > skip + pageSize,
+                PageCount = pageCount,
+                Categories = await _postsOperations.GetCategories(),
+                Posts = await _postsOperations.GetPostsWithPagination(query, skip, pageSize),
+                Pages = _fileManager.Pages(page, pageCount),
+            };
+            return viewModel;
         }
         public async Task<List<BR_Post>> GetUserPosts(BR_ApplicationUser user) => await _context.BR_Posts.Include(x => x.Image).Where(x => x.ApplicationUser!.Id == user.Id).ToListAsync();
-        public async Task<List<BR_Post>> GetAllPosts() => await _context.BR_Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Include(x => x.Image).ToListAsync();
-        public async Task<List<BR_Post>> GetPostsOfUser(BR_ApplicationUser user) => await _context.BR_Posts.Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Include(x => x.Image).Where(x => x.ApplicationUser!.Id == user.Id).ToListAsync();
-        public async Task<BR_Post?> GetBlogPost(string slug, string category, string subcategory)
+        public async Task<List<BR_Post>> GetAllPosts() => await _context.BR_Posts.AsNoTracking().Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Include(x => x.Image).ToListAsync();
+        public async Task<List<BR_Post>> GetPostsOfUser(BR_ApplicationUser user) => await _context.BR_Posts.AsNoTracking().Include(x => x.Document).Include(x => x.ApplicationUser).Include(x => x.Comments).Include(x => x.Image).Where(x => x.ApplicationUser!.Id == user.Id).ToListAsync();
+        public async Task<BR_Post?> GetBlogPost(string slug)
         {
             return await _context.BR_Posts.Include(p => p.Comments!)
                                            .ThenInclude(comment => comment.ApplicationUser)
@@ -56,7 +96,7 @@ namespace BeReal.Data.Repository.Posts
                                        .Include(p => p.ApplicationUser)
                                        .Include(p => p.Document)
                                        .Include(p => p.Image)
-                                           .FirstOrDefaultAsync(x => x.Category!.Contains(category) || x.Category.Contains(category) || x.Slug == slug);
+                                           .FirstOrDefaultAsync(x => x.Slug == slug);
         }
         public async Task<BR_Post?> GetPostById(int id) => await _context.BR_Posts.Include(x=> x.Comments).Include(x => x.Document).Include(x => x.Image).FirstOrDefaultAsync(x => x.IDBR_Post == id);
         public async Task<BR_Post?> GetPostWithFilesById(int id) => await _context.BR_Posts.Include(x => x.Document).Include(x => x.Image).FirstOrDefaultAsync(x => x.IDBR_Post == id);

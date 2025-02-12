@@ -36,27 +36,13 @@ namespace BeReal.Areas.Admin.Controllers
         public async Task<IActionResult> EditProfile(ProfileViewModel rvm, string id) 
         {
             var oldUser = await _usersOperations.GetUserByUsername(rvm.Username!);
-            if (!ModelState.IsValid)
+            var validateEditProfile = await _usersOperations.ValidateEditProfile(rvm, _usersOperations, oldUser!);
+            if (validateEditProfile != null)
             {
-                _notification.Warning("Please fill in all the fields");
+                _notification.Error(validateEditProfile);
                 return View(rvm);
             }
-            if (oldUser!.Email != rvm.Email)
-            {
-                var checkEmail = await _usersOperations.GetUserByEmail(rvm.Email!);
-                if (checkEmail != null)
-                {
-                    _notification.Error("This email is already registered.");
-                    return View(rvm);
-                }
-            }
-            var confirmPassword = await _usersOperations.CheckPasswordForLogin(oldUser!, rvm.Password!);
-            if (!confirmPassword)
-            {
-                _notification.Error("Password is not correct");
-                return View(rvm);
-            }
-            oldUser.FirstName = rvm.FirstName;
+            oldUser!.FirstName = rvm.FirstName;
             oldUser.LastName = rvm.LastName;
             oldUser.Email = rvm.Email;
             oldUser.EmailConfirmed = true;
@@ -81,7 +67,6 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm, string id)
         {
-            if (!ModelState.IsValid) return View(rpvm);
             var validatePasswordReset = await _usersOperations.ValidateResetPassword(rpvm, _usersOperations);
             if (validatePasswordReset != null)
             {

@@ -18,14 +18,17 @@
                         <div class="mb-2">
                             <label>Title<span style="color:red">*</span></label>
                             <input asp-for="Title" type="text" class="form-control" />
+                            <span asp-validation-for="Title" class="text-danger small"></span>
                         </div>
                         <div class="mb-2">
                             <label>Short Description<span style="color:red">*</span></label>
                             <input asp-for="ShortDescription" type="text" class="form-control" />
+                            <span asp-validation-for="ShortDescription" class="text-danger small"></span>
                         </div>
                         <div class="mb-2">
                             <label>Category<span style="color:red">*</span></label>
                             <input asp-for="Category" type="text" id="myTextField" class="form-control" readonly>
+                            <span asp-validation-for="Category" class="text-danger small"></span>
                             @foreach (var category in Model.Categories!.Where(X => X.ParentCategory != null))
                             {
                                 <label><input type="checkbox" class="myCheckbox" value="@category.ParentCategory!.Name/@category.Name">@category.Name</label>
@@ -36,8 +39,9 @@
                             <input asp-for="Tags" type="text" class="form-control" />
                         </div>
                         <div class="mb-2">
-                            <label>Description</label>
+                            <label>Description<span style="color:red">*</span></label>
                             <textarea asp-for="Description" class="form-control" rows="8" id="editor"></textarea>
+                            <span asp-validation-for="Description" class="text-danger small"></span>
                         </div>
                     </div>
                     <div class="col-3">

@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace BeReal.Migrations
 {
     /// <inheritdoc />
-    public partial class Reviewed : Migration
+    public partial class InitialMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -54,7 +54,26 @@ namespace BeReal.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Files",
+                name: "BR_Categories",
+                columns: table => new
+                {
+                    IDBR_Category = table.Column<int>(type: "int", nullable: false)
+                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ParentCategoryIDBR_Category = table.Column<int>(type: "int", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_BR_Categories", x => x.IDBR_Category);
+                    table.ForeignKey(
+                        name: "FK_BR_Categories_BR_Categories_ParentCategoryIDBR_Category",
+                        column: x => x.ParentCategoryIDBR_Category,
+                        principalTable: "BR_Categories",
+                        principalColumn: "IDBR_Category");
+                });
+
+            migrationBuilder.CreateTable(
+                name: "BR_Files",
                 columns: table => new
                 {
                     IDBR_Document = table.Column<int>(type: "int", nullable: false)
@@ -65,11 +84,11 @@ namespace BeReal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Files", x => x.IDBR_Document);
+                    table.PrimaryKey("PK_BR_Files", x => x.IDBR_Document);
                 });
 
             migrationBuilder.CreateTable(
-                name: "Pages",
+                name: "BR_Pages",
                 columns: table => new
                 {
                     IDBR_Page = table.Column<int>(type: "int", nullable: false)
@@ -77,12 +96,11 @@ namespace BeReal.Migrations
                     Title = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ShortDescription = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    ImageUrl = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Slug = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Pages", x => x.IDBR_Page);
+                    table.PrimaryKey("PK_BR_Pages", x => x.IDBR_Page);
                 });
 
             migrationBuilder.CreateTable(
@@ -192,7 +210,7 @@ namespace BeReal.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Posts",
+                name: "BR_Posts",
                 columns: table => new
                 {
                     IDBR_Post = table.Column<int>(type: "int", nullable: false)
@@ -204,7 +222,7 @@ namespace BeReal.Migrations
                     PublicationDate = table.Column<DateTime>(type: "datetime2", nullable: false),
                     Description = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Slug = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Image = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    ImageIDBR_Document = table.Column<int>(type: "int", nullable: true),
                     DocumentIDBR_Document = table.Column<int>(type: "int", nullable: true),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Tags = table.Column<string>(type: "nvarchar(max)", nullable: true),
@@ -212,21 +230,26 @@ namespace BeReal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Posts", x => x.IDBR_Post);
+                    table.PrimaryKey("PK_BR_Posts", x => x.IDBR_Post);
                     table.ForeignKey(
-                        name: "FK_Posts_AspNetUsers_ApplicationUserId",
+                        name: "FK_BR_Posts_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Posts_Files_DocumentIDBR_Document",
+                        name: "FK_BR_Posts_BR_Files_DocumentIDBR_Document",
                         column: x => x.DocumentIDBR_Document,
-                        principalTable: "Files",
+                        principalTable: "BR_Files",
+                        principalColumn: "IDBR_Document");
+                    table.ForeignKey(
+                        name: "FK_BR_Posts_BR_Files_ImageIDBR_Document",
+                        column: x => x.ImageIDBR_Document,
+                        principalTable: "BR_Files",
                         principalColumn: "IDBR_Document");
                 });
 
             migrationBuilder.CreateTable(
-                name: "Comments",
+                name: "BR_Comments",
                 columns: table => new
                 {
                     IDBR_Comment = table.Column<int>(type: "int", nullable: false)
@@ -239,21 +262,21 @@ namespace BeReal.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Comments", x => x.IDBR_Comment);
+                    table.PrimaryKey("PK_BR_Comments", x => x.IDBR_Comment);
                     table.ForeignKey(
-                        name: "FK_Comments_AspNetUsers_ApplicationUserId",
+                        name: "FK_BR_Comments_AspNetUsers_ApplicationUserId",
                         column: x => x.ApplicationUserId,
                         principalTable: "AspNetUsers",
                         principalColumn: "Id");
                     table.ForeignKey(
-                        name: "FK_Comments_Comments_ParentCommentIDBR_Comment",
+                        name: "FK_BR_Comments_BR_Comments_ParentCommentIDBR_Comment",
                         column: x => x.ParentCommentIDBR_Comment,
-                        principalTable: "Comments",
+                        principalTable: "BR_Comments",
                         principalColumn: "IDBR_Comment");
                     table.ForeignKey(
-                        name: "FK_Comments_Posts_PostIDBR_Post",
+                        name: "FK_BR_Comments_BR_Posts_PostIDBR_Post",
                         column: x => x.PostIDBR_Post,
-                        principalTable: "Posts",
+                        principalTable: "BR_Posts",
                         principalColumn: "IDBR_Post");
                 });
 
@@ -297,29 +320,39 @@ namespace BeReal.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_ApplicationUserId",
-                table: "Comments",
+                name: "IX_BR_Categories_ParentCategoryIDBR_Category",
+                table: "BR_Categories",
+                column: "ParentCategoryIDBR_Category");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BR_Comments_ApplicationUserId",
+                table: "BR_Comments",
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_ParentCommentIDBR_Comment",
-                table: "Comments",
+                name: "IX_BR_Comments_ParentCommentIDBR_Comment",
+                table: "BR_Comments",
                 column: "ParentCommentIDBR_Comment");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Comments_PostIDBR_Post",
-                table: "Comments",
+                name: "IX_BR_Comments_PostIDBR_Post",
+                table: "BR_Comments",
                 column: "PostIDBR_Post");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Posts_ApplicationUserId",
-                table: "Posts",
+                name: "IX_BR_Posts_ApplicationUserId",
+                table: "BR_Posts",
                 column: "ApplicationUserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Posts_DocumentIDBR_Document",
-                table: "Posts",
+                name: "IX_BR_Posts_DocumentIDBR_Document",
+                table: "BR_Posts",
                 column: "DocumentIDBR_Document");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_BR_Posts_ImageIDBR_Document",
+                table: "BR_Posts",
+                column: "ImageIDBR_Document");
         }
 
         /// <inheritdoc />
@@ -341,22 +374,25 @@ namespace BeReal.Migrations
                 name: "AspNetUserTokens");
 
             migrationBuilder.DropTable(
-                name: "Comments");
+                name: "BR_Categories");
 
             migrationBuilder.DropTable(
-                name: "Pages");
+                name: "BR_Comments");
+
+            migrationBuilder.DropTable(
+                name: "BR_Pages");
 
             migrationBuilder.DropTable(
                 name: "AspNetRoles");
 
             migrationBuilder.DropTable(
-                name: "Posts");
+                name: "BR_Posts");
 
             migrationBuilder.DropTable(
                 name: "AspNetUsers");
 
             migrationBuilder.DropTable(
-                name: "Files");
+                name: "BR_Files");
         }
     }
 }

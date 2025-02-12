@@ -1,0 +1,23 @@
+﻿.textarea-like {
+    position: relative;
+}
+
+    .textarea-like input {
+        display: block;
+        width: 100%;
+        height: auto; /* Allow the height to adjust based on content */
+        min-height: 100px; /* Minimum height to show multiple lines */
+        padding: 8px 12px; /* Adjust padding as needed */
+        font-size: inherit; /* Inherit font size for consistency */
+        line-height: 1.4; /* Line height for readability */
+        resize: vertical; /* Allow vertical resizing */
+        border: 1px solid #ced4da; /* Border color */
+        border-radius: 4px; /* Rounded corners */
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out; /* Transition for visual feedback */
+    }
+
+        .textarea-like input:focus {
+            outline: none; /* Remove default focus outline */
+            border-color: #80bdff; /* Border color on focus */
+            box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25); /* Box shadow on focus for visual emphasis */
+        }

@@ -65,7 +65,6 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> Register(RegisterViewModel rvm) //admin can add a new user
         {
-            if (!ModelState.IsValid) return View(rvm);
             var validationResult = await _usersOperations.ValidateUser(rvm, _usersOperations);
             if (validationResult != null)
             {
@@ -103,7 +102,6 @@ namespace BeReal.Areas.Admin.Controllers
         [HttpPost]
         public async Task<IActionResult> ResetPassword(ResetPasswordViewModel rpvm) //admin can reset the users' password
         {
-            if (!ModelState.IsValid) return View(rpvm);
             var validatePasswordReset = await _usersOperations.ValidateResetPassword(rpvm, _usersOperations);
             if (validatePasswordReset != null) {
                 _notification.Error(validatePasswordReset);
@@ -123,6 +121,7 @@ namespace BeReal.Areas.Admin.Controllers
             string assignRole = removeRole == Roles.Admin ? Roles.User : Roles.Admin;
             await _usersOperations.RemoveRoleFromUser(thisUser, removeRole);
             await _usersOperations.GiveRoleToUser(thisUser, assignRole);
+            _notification.Success($"User role changed to {assignRole}");
             return RedirectToAction("Index", "User", new { area = "Admin" });
         }
         [HttpGet("AccessDenied")]

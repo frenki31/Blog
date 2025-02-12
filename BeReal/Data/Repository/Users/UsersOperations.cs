@@ -4,6 +4,9 @@ using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using BeReal.ViewModels;
 using NuGet.Common;
+using System.Text.RegularExpressions;
+using System.Runtime.Intrinsics.Arm;
+using AspNetCoreHero.ToastNotification.Abstractions;
 
 namespace BeReal.Data.Repository.Users
 {
@@ -36,21 +39,44 @@ namespace BeReal.Data.Repository.Users
         public async Task Logout() => await _signInManager.SignOutAsync();
         public async Task<string> ValidateUser(RegisterViewModel rvm, IUsersOperations _usersOperations)
         {
+            var passRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$");
+            var emailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            if (rvm.FirstName is null || rvm.LastName is null || rvm.Username is null || rvm.Password is null || rvm.ConfirmPassword is null || rvm.Email is null) return "Please fill in all the fields";
+            if (!emailRegex.IsMatch(rvm.Email)) return "Wrong email format";
             var checkEmail = await _usersOperations.GetUserByEmail(rvm.Email!);
             if (checkEmail != null) return "This email is already registered.";
             var checkUsername = await _usersOperations.GetUserByUsername(rvm.Username!);
             if (checkUsername != null) return "This username is not available.";
+            if (!passRegex.IsMatch(rvm.Password)) return "Password should be at least 8 characters long with lowercase, uppercase, symbol and number";
             if (rvm.Password != rvm.ConfirmPassword) return "Passwords do not match";
             return null!;
         }
         public async Task<string> ValidateResetPassword(ResetPasswordViewModel rpvm, IUsersOperations _usersOperations)
         {
+            var passRegex = new Regex(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,20}$");
             var thisUser = await _usersOperations.GetUserById(rpvm.Id!);
             if (thisUser == null) return "User not found";
+            if (rpvm.NewPassword is null || rpvm.ConfirmPassword is null) return "Please fill in all the fields";
+            if (!passRegex.IsMatch(rpvm.NewPassword)) return "Password should be at least 8 characters long with lowercase, uppercase, symbol and number";
+            if (rpvm.NewPassword != rpvm.ConfirmPassword) return "Passwords do not match";
             var token = await _usersOperations.GenerateToken(thisUser);
             var reset = await _usersOperations.ResetPassword(thisUser, token, rpvm.NewPassword!);
             if (reset.Succeeded) return null!;
             return "Password reset failed";
+        }
+        public async Task<string> ValidateEditProfile(ProfileViewModel rvm, IUsersOperations _usersOperations, BR_ApplicationUser oldUser)
+        {
+            var emailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            if (rvm.Email is null || rvm.FirstName is null || rvm.LastName is null || rvm.Password is null) return "Please fill in all the fields";
+            if (oldUser!.Email != rvm.Email)
+            {
+                if (!emailRegex.IsMatch(rvm.Email)) return "Wrong email format";
+                var checkEmail = await _usersOperations.GetUserByEmail(rvm.Email!);
+                if (checkEmail != null) return "This email is already registered.";
+            }
+            var confirmPassword = await _usersOperations.CheckPasswordForLogin(oldUser!, rvm.Password!);
+            if (!confirmPassword) return "Password is not correct";
+            return null!;
         }
     }
 }

@@ -8,8 +8,8 @@ namespace BeReal.ViewModels
         public string? Search {  get; set; }
         public string? Category { get; set; }
         public string? SubCategory { get; set; }
-        public DateTime StartDate { get; set; }
-        public DateTime EndDate { get; set; }
+        public string? StartDate { get; set; }
+        public string? EndDate { get; set; }
         public int PageNumber { get; set; }
         public int PageCount { get; set; }
         public bool NextPage { get; set; }
